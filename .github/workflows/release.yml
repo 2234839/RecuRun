@@ -49,7 +49,14 @@ jobs:
         run: |
           npm_version=$(npm -v)
           echo "📦 npm 版本: $npm_version"
-          echo "✅ Node.js 20 自带的 npm 版本满足 OIDC 要求"
+          echo "✅ Node.js 20 自带的 npm 版本满足 OIDC requirements"
+          echo "📦 包名: recurun"
+          echo "📦 仓库: 2234839/RecuRun"
+
+      - name: Check npm whoami
+        run: |
+          npm whoami
+          echo "✅ OIDC 认证信息已获取"
 
       - name: Publish to npm
         run: npm publish --access public --provenance
