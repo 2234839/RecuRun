@@ -231,4 +231,97 @@ describe('性能测试', () => {
     });
 });
 
+// ==================== 测试特殊递归形式 ====================
+
+describe('特殊递归形式', () => {
+    it('应该支持相互递归', () => {
+        // 两个函数相互调用
+        function* isEven(n: number): Generator<any, boolean> {
+            if (n === 0) return true;
+            return yield isOdd(n - 1);
+        }
+
+        function* isOdd(n: number): Generator<any, boolean> {
+            if (n === 0) return false;
+            return yield isEven(n - 1);
+        }
+
+        assert.strictEqual(run(isEven(4)), true);
+        assert.strictEqual(run(isEven(5)), false);
+        assert.strictEqual(run(isOdd(4)), false);
+        assert.strictEqual(run(isOdd(5)), true);
+    });
+
+    it('应该支持嵌套递归', () => {
+        // 递归调用作为参数传递
+        function* ackermann(m: number, n: number): Generator<any, number> {
+            if (m === 0) return n + 1;
+            if (n === 0) return yield ackermann(m - 1, 1);
+            // 嵌套递归：递归调用的结果作为另一个递归调用的参数
+            const inner = yield ackermann(m, n - 1);
+            return yield ackermann(m - 1, inner);
+        }
+
+        // Ackermann 函数小测试
+        assert.strictEqual(run(ackermann(0, 0)), 1);
+        assert.strictEqual(run(ackermann(1, 2)), 4);
+        assert.strictEqual(run(ackermann(2, 2)), 7);
+    });
+
+    it('应该支持多路递归', () => {
+        // 三路递归（类似三分树）
+        function* trinarySum(n: number): Generator<any, number> {
+            if (n <= 0) return 0;
+            const a = yield trinarySum(n - 1);
+            const b = yield trinarySum(n - 2);
+            const c = yield trinarySum(n - 3);
+            return a + b + c + n;
+        }
+
+        assert.strictEqual(run(trinarySum(5)), 30);
+    });
+
+    it('应该支持条件递归分支', () => {
+        // 根据条件选择不同的递归路径
+        function* conditionalRecursion(n: number, flag: boolean): Generator<any, number> {
+            if (n <= 0) return 0;
+
+            if (flag) {
+                // 路径1：单分支
+                return n + (yield conditionalRecursion(n - 1, !flag));
+            } else {
+                // 路径2：双分支
+                const a = yield conditionalRecursion(n - 1, !flag);
+                const b = yield conditionalRecursion(n - 2, true);
+                return a + b;
+            }
+        }
+
+        assert.strictEqual(run(conditionalRecursion(5, true)), 11);
+        assert.strictEqual(run(conditionalRecursion(5, false)), 11);
+    });
+
+    it('应该支持递归构建数据结构', () => {
+        // 递归构建链表
+        interface ListNode {
+            value: number;
+            next?: ListNode;
+        }
+
+        function* buildList(n: number): Generator<any, ListNode | undefined> {
+            if (n <= 0) return undefined;
+            const rest = yield buildList(n - 1);
+            return { value: n, next: rest };
+        }
+
+        function* listLength(node: ListNode | undefined, acc: number = 0): Generator<any, number> {
+            if (!node) return acc;
+            return yield listLength(node.next, acc + 1);
+        }
+
+        const list = run(buildList(5));
+        assert.strictEqual(run(listLength(list)), 5);
+    });
+});
+
 console.log('\n🧪 开始运行 RecuRun 测试套件...\n');
