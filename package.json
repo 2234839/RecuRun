@@ -1,6 +1,6 @@
 {
   "name": "recurun",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "极简的递归运行器库 - 用递归的方式写代码,以迭代的方式运行",
   "type": "module",
   "main": "./dist/index.js",
