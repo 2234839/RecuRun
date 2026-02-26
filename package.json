@@ -23,6 +23,7 @@
   "scripts": {
     "build": "tsc",
     "test": "node --test",
+    "benchmark": "npx tsx benchmark/benchmark.ts",
     "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [

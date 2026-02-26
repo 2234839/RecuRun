@@ -330,16 +330,46 @@ isAsyncGenerator(null);   // false
 
 ## Performance
 
+### ⚠️ Performance Trade-offs
+
+> **Important**: RecuRun trades performance for safety. It's slower than normal recursion but prevents stack overflow.
+
+Run the benchmark yourself:
+
+```bash
+npm run benchmark
+```
+
 ### Benchmarks
 
-| Scenario | Recursion Depth | Normal Recursion | `run` | `runTail` |
-|----------|----------------|------------------|-------|-----------|
-| Factorial | 10,000 | Stack overflow ❌ | 15ms ✅ | 12ms ✅ |
-| Factorial | 100,000 | Stack overflow ❌ | Stack overflow ❌ | 98ms ✅ |
-| Fibonacci | 40 | 2.3s ✅ | 2.5s ✅ | N/A |
-| Fibonacci | 50 | Timeout ❌ | Timeout ❌ | N/A |
+| Test Case | Depth | Normal Recursion | RecuRun | Slowdown |
+|-----------|-------|------------------|---------|----------|
+| **Fibonacci** | 30 | 4.6 ms ✅ | 77.4 ms ✅ | **16.9x** ⚠️ |
+| **Factorial** | 1,000 | 0.15 ms ✅ | 0.44 ms ✅ | **2.9x** ⚠️ |
+| **Tail Factorial** | 5,000 | 0.71 ms ✅ | 0.74 ms ✅ | **1.0x** ⚠️ |
+| **Array Sum** | 5,000 elements | 0.31 ms ✅ | 1.31 ms ✅ | **4.2x** ⚠️ |
+| **Deep Recursion** | 5,000 | 0.11 ms ✅ | 0.67 ms ✅ | **6.1x** ⚠️ |
+| **Very Deep Recursion** | 100,000 | ❌ Stack overflow | 8.29 ms ✅ | **∞** ✅ |
 
-> Note: Test environment: Node.js v24, performance may vary by machine
+### Key Takeaways
+
+- **Small recursion (< 1,000)**: RecuRun is **3-17x slower** than normal recursion
+- **Medium recursion (1,000-10,000)**: RecuRun is **1-6x slower**
+- **Deep recursion (> 10,000)**: Normal recursion **overflows**, RecuRun **works**
+- **Very deep recursion (> 50,000)**: **Only RecuRun can complete**
+
+### 💡 When to Use RecuRun
+
+| Scenario | Recommendation | Reason |
+|----------|----------------|--------|
+| Performance-critical code | ❌ Use normal recursion | Faster execution |
+| Shallow recursion (< 1,000) | ❌ Use normal recursion | No stack risk, faster |
+| Deep recursion (> 10,000) | ✅ Use RecuRun | Prevents stack overflow |
+| Already have stack overflow | ✅ Use RecuRun | Minimal code changes |
+| Asynchronous recursion | ✅ Use RecuRun | Native async/await support |
+| Production stability | ✅ Use RecuRun | Predictable, no crashes |
+
+> **Test environment**: Node.js v24, performance may vary by machine and workload
 
 ## Usage Guide
 
