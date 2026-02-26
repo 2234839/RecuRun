@@ -1,6 +1,6 @@
 {
   "name": "recurun",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Write recursive code that runs iteratively - avoid stack overflow with zero dependencies",
   "type": "module",
   "main": "./dist/index.js",
