@@ -23,8 +23,7 @@
   "scripts": {
     "build": "tsc",
     "test": "node --test",
-    "prepublishOnly": "npm run build && npm test",
-    "example": "node examples/fibonacci.js"
+    "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
     "recursion",
