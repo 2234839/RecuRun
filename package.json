@@ -1,0 +1,47 @@
+{
+  "name": "recurun",
+  "version": "0.1.0",
+  "description": "极简的递归运行器库 - 用递归的方式写代码,以迭代的方式运行",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test",
+    "prepublishOnly": "npm run build && npm test",
+    "example": "node examples/fibonacci.js"
+  },
+  "keywords": [
+    "recursion",
+    "trampoline",
+    "tail-call",
+    "generator",
+    "stack-overflow",
+    "typescript",
+    "functional"
+  ],
+  "author": "RecuRun Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/recurun.git"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
