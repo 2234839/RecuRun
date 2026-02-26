@@ -4,7 +4,7 @@
  * 使用 Node.js 内置的 test runner
  */
 
-import { run, runTail, isGenerator, isAsyncGenerator } from '../dist/index.js';
+import { run, runTail, runAsync, runTailAsync, isGenerator, isAsyncGenerator } from '../dist/index.js';
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
 
@@ -321,6 +321,133 @@ describe('特殊递归形式', () => {
 
         const list = run(buildList(5));
         assert.strictEqual(run(listLength(list)), 5);
+    });
+});
+
+// ==================== 测试异步递归 ====================
+
+describe('runAsync', () => {
+    it('应该正确计算异步斐波那契', async () => {
+        async function* fibonacci(n: number): AsyncGenerator<any, number> {
+            await new Promise(r => setTimeout(r, 1)); // 模拟异步操作
+            if (n <= 2) return 1;
+            const a = yield fibonacci(n - 1);
+            const b = yield fibonacci(n - 2);
+            return a + b;
+        }
+
+        assert.strictEqual(await runAsync(fibonacci(10)), 55);
+        assert.strictEqual(await runAsync(fibonacci(15)), 610);
+    });
+
+    it('应该支持异步树遍历', async () => {
+        interface TreeNode {
+            value: number;
+            left?: TreeNode;
+            right?: TreeNode;
+        }
+
+        const tree: TreeNode = {
+            value: 1,
+            left: { value: 2, left: { value: 4 }, right: { value: 5 } },
+            right: { value: 3 }
+        };
+
+        async function* traverse(node: TreeNode | undefined): AsyncGenerator<any, number> {
+            await new Promise(r => setTimeout(r, 1));
+            if (!node) return 0;
+            const left = yield traverse(node.left);
+            const right = yield traverse(node.right);
+            return node.value + left + right;
+        }
+
+        const result = await runAsync(traverse(tree));
+        assert.strictEqual(result, 15); // 1+2+3+4+5 = 15
+    });
+
+    it('应该支持异步数组处理', async () => {
+        async function* asyncSum(arr: number[], index = 0): AsyncGenerator<any, number> {
+            await new Promise(r => setTimeout(r, 1));
+            if (index >= arr.length) return 0;
+            return arr[index] + (yield asyncSum(arr, index + 1));
+        }
+
+        const result = await runAsync(asyncSum([1, 2, 3, 4, 5]));
+        assert.strictEqual(result, 15);
+    });
+});
+
+describe('runTailAsync', () => {
+    it('应该正确计算异步尾递归阶乘', async () => {
+        async function* factorial(n: number, acc: number = 1): AsyncGenerator<any, number> {
+            await new Promise(r => setTimeout(r, 1));
+            if (n <= 1) return acc;
+            return yield factorial(n - 1, acc * n);
+        }
+
+        assert.strictEqual(await runTailAsync(factorial(5)), 120);
+        assert.strictEqual(await runTailAsync(factorial(10)), 3628800);
+    });
+
+    it('应该能处理超深异步递归', async () => {
+        async function* deepCounter(n: number): AsyncGenerator<any, number> {
+            await new Promise(r => setTimeout(r, 1));
+            if (n <= 0) return 0;
+            return yield deepCounter(n - 1);
+        }
+
+        // 测试超深异步递归 - 真正的尾递归优化!
+        assert.strictEqual(await runTailAsync(deepCounter(1000)), 0);
+        assert.strictEqual(await runTailAsync(deepCounter(5000)), 0);
+    });
+
+    it('应该支持异步链表遍历', async () => {
+        interface ListNode {
+            value: number;
+            next?: ListNode;
+        }
+
+        const list = {
+            value: 1,
+            next: {
+                value: 2,
+                next: {
+                    value: 3,
+                    next: { value: 4, next: { value: 5 } }
+                }
+            }
+        };
+
+        async function* traverseList(
+            node: ListNode | undefined,
+            acc: number = 0
+        ): AsyncGenerator<any, number> {
+            await new Promise(r => setTimeout(r, 1));
+            if (!node) return acc;
+            return yield traverseList(node.next, acc + node.value);
+        }
+
+        const result = await runTailAsync(traverseList(list));
+        assert.strictEqual(result, 15);
+    });
+
+    it('应该支持异步相互递归', async () => {
+        async function* isEven(n: number): AsyncGenerator<any, boolean> {
+            await new Promise(r => setTimeout(r, 1));
+            if (n === 0) return true;
+            return yield isOdd(n - 1);
+        }
+
+        async function* isOdd(n: number): AsyncGenerator<any, boolean> {
+            await new Promise(r => setTimeout(r, 1));
+            if (n === 0) return false;
+            return yield isEven(n - 1);
+        }
+
+        assert.strictEqual(await runTailAsync(isEven(4)), true);
+        assert.strictEqual(await runTailAsync(isEven(5)), false);
+        assert.strictEqual(await runTailAsync(isOdd(4)), false);
+        assert.strictEqual(await runTailAsync(isOdd(5)), true);
     });
 });
 
