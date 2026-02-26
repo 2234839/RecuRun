@@ -1,0 +1,73 @@
+name: Release to npm
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # 触发条件：推送版本标签，如 v1.0.0
+
+permissions:
+  contents: write
+  # 关键配置：允许 GitHub Actions 生成 OIDC 令牌
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build package
+        run: npm run build
+
+      - name: Verify build output
+        run: |
+          echo "📦 检查打包输出..."
+          ls -la dist/
+          if [ ! -f dist/index.js ]; then
+            echo "❌ 主入口文件不存在"
+            exit 1
+          fi
+          if [ ! -f dist/index.d.ts ]; then
+            echo "❌ 类型定义文件不存在"
+            exit 1
+          fi
+          echo "✅ 打包输出正常"
+
+      - name: Run tests
+        run: npm test
+
+      - name: Verify npm version
+        run: |
+          npm_version=$(npm -v)
+          echo "📦 npm 版本: $npm_version"
+          echo "✅ Node.js 20 自带的 npm 版本满足 OIDC 要求"
+
+      - name: Publish to npm
+        run: npm publish --provenance
+        # 使用 OIDC，不需要 NPM_TOKEN
+        # --provenance 标志启用包溯源（npm 推荐的安全实践）
+
+      - name: Extract version from tag
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: |
+            ## Release ${{ steps.get_version.outputs.version }}
+
+            See [CHANGELOG.md](https://github.com/your-org/recurun/blob/main/CHANGELOG.md) for details.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

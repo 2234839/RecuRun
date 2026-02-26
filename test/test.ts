@@ -35,10 +35,10 @@ describe('run', () => {
             return n * (yield factorial(n - 1));
         }
 
-        assert.strictEqual(run(factorial, 0), 1);
-        assert.strictEqual(run(factorial, 1), 1);
-        assert.strictEqual(run(factorial, 5), 120);
-        assert.strictEqual(run(factorial, 10), 3628800);
+        assert.strictEqual(run(factorial(0)), 1);
+        assert.strictEqual(run(factorial(1)), 1);
+        assert.strictEqual(run(factorial(5)), 120);
+        assert.strictEqual(run(factorial(10)), 3628800);
     });
 
     it('应该正确计算斐波那契数列', () => {
@@ -49,11 +49,11 @@ describe('run', () => {
             return a + b;
         }
 
-        assert.strictEqual(run(fibonacci, 1), 1);
-        assert.strictEqual(run(fibonacci, 2), 1);
-        assert.strictEqual(run(fibonacci, 3), 2);
-        assert.strictEqual(run(fibonacci, 5), 5);
-        assert.strictEqual(run(fibonacci, 10), 55);
+        assert.strictEqual(run(fibonacci(1)), 1);
+        assert.strictEqual(run(fibonacci(2)), 1);
+        assert.strictEqual(run(fibonacci(3)), 2);
+        assert.strictEqual(run(fibonacci(5)), 5);
+        assert.strictEqual(run(fibonacci(10)), 55);
     });
 
     it('应该能处理深度递归', () => {
@@ -63,8 +63,8 @@ describe('run', () => {
         }
 
         // 普通递归在 10000+ 会栈溢出
-        assert.strictEqual(run(deepSum, 1000), 500500);
-        assert.strictEqual(run(deepSum, 5000), 12502500);
+        assert.strictEqual(run(deepSum(1000)), 500500);
+        assert.strictEqual(run(deepSum(5000)), 12502500);
     });
 
     it('应该支持树形结构遍历', () => {
@@ -87,7 +87,7 @@ describe('run', () => {
             return node.value + left + right;
         }
 
-        assert.strictEqual(run(traverse, tree), 28); // 1+2+3+4+5+6+7 = 28
+        assert.strictEqual(run(traverse(tree)), 28); // 1+2+3+4+5+6+7 = 28
     });
 
     it('应该支持数组操作', () => {
@@ -96,8 +96,8 @@ describe('run', () => {
             return arr[index] + (yield arraySum(arr, index + 1));
         }
 
-        assert.strictEqual(run(arraySum, [1, 2, 3, 4, 5]), 15);
-        assert.strictEqual(run(arraySum, []), 0);
+        assert.strictEqual(run(arraySum([1, 2, 3, 4, 5])), 15);
+        assert.strictEqual(run(arraySum([])), 0);
     });
 });
 
@@ -110,10 +110,10 @@ describe('runTail', () => {
             return yield factorial(n - 1, acc * n);
         }
 
-        assert.strictEqual(runTail(factorial, 0), 1);
-        assert.strictEqual(runTail(factorial, 1), 1);
-        assert.strictEqual(runTail(factorial, 5), 120);
-        assert.strictEqual(runTail(factorial, 10), 3628800);
+        assert.strictEqual(runTail(factorial(0)), 1);
+        assert.strictEqual(runTail(factorial(1)), 1);
+        assert.strictEqual(runTail(factorial(5)), 120);
+        assert.strictEqual(runTail(factorial(10)), 3628800);
     });
 
     it('应该能处理超深递归', () => {
@@ -123,9 +123,9 @@ describe('runTail', () => {
         }
 
         // 测试超深递归 - 真正的尾递归优化!
-        assert.strictEqual(runTail(deepCounter, 10000), 0);
-        assert.strictEqual(runTail(deepCounter, 50000), 0);
-        assert.strictEqual(runTail(deepCounter, 100000), 0);
+        assert.strictEqual(runTail(deepCounter(10000)), 0);
+        assert.strictEqual(runTail(deepCounter(50000)), 0);
+        assert.strictEqual(runTail(deepCounter(100000)), 0);
     });
 
     it('应该支持尾递归求和', () => {
@@ -134,8 +134,8 @@ describe('runTail', () => {
             return yield sum(n - 1, acc + n);
         }
 
-        assert.strictEqual(runTail(sum, 10), 55); // 1+2+...+10 = 55
-        assert.strictEqual(runTail(sum, 100), 5050);
+        assert.strictEqual(runTail(sum(10)), 55); // 1+2+...+10 = 55
+        assert.strictEqual(runTail(sum(100)), 5050);
     });
 
     it('应该支持链表遍历', () => {
@@ -164,7 +164,7 @@ describe('runTail', () => {
             return yield traverseList(node.next, acc + node.value);
         }
 
-        assert.strictEqual(runTail(traverseList, list), 15);
+        assert.strictEqual(runTail(traverseList(list)), 15);
     });
 
     it('应该支持尾递归查找', () => {
@@ -174,8 +174,8 @@ describe('runTail', () => {
             return yield findTarget(arr, target, index + 1);
         }
 
-        assert.strictEqual(runTail(findTarget, [1, 2, 3, 4, 5], 3), 2);
-        assert.strictEqual(runTail(findTarget, [1, 2, 3, 4, 5], 6), null);
+        assert.strictEqual(runTail(findTarget([1, 2, 3, 4, 5], 3)), 2);
+        assert.strictEqual(runTail(findTarget([1, 2, 3, 4, 5], 6)), null);
     });
 });
 
@@ -192,7 +192,7 @@ describe('性能测试', () => {
 
         // 斐波那契数列第 35 项
         const start = Date.now();
-        const result = run(fib, 35);
+        const result = run(fib(35));
         const duration = Date.now() - start;
 
         assert.strictEqual(result, 9227465);
@@ -206,7 +206,7 @@ describe('性能测试', () => {
         }
 
         const start = Date.now();
-        const result = runTail(factorial, 10000);
+        const result = runTail(factorial(10000));
         const duration = Date.now() - start;
 
         // 验证结果是 Infinity (因为太大了)

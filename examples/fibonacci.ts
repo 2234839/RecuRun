@@ -20,9 +20,9 @@ function* fibonacci(n: number) {
     return a + b;
 }
 
-console.log('fib(10) =', run(fibonacci, 10));
-console.log('fib(20) =', run(fibonacci, 20));
-console.log('fib(35) =', run(fibonacci, 35), '\n');
+console.log('fib(10) =', run(fibonacci(10)));
+console.log('fib(20) =', run(fibonacci(20)));
+console.log('fib(35) =', run(fibonacci(35)), '\n');
 
 // ==================== 示例 2: 尾递归阶乘 ====================
 
@@ -35,10 +35,10 @@ function* factorial(n: number, acc: number = 1) {
     return yield factorial(n - 1, acc * n);
 }
 
-console.log('5! =', runTail(factorial, 5));
-console.log('10! =', runTail(factorial, 10));
-console.log('100! =', runTail(factorial, 100));
-console.log('1000! =', runTail(factorial, 1000), '\n');
+console.log('5! =', runTail(factorial(5)));
+console.log('10! =', runTail(factorial(10)));
+console.log('100! =', runTail(factorial(100)));
+console.log('1000! =', runTail(factorial(1000)), '\n');
 
 // ==================== 示例 3: 深度优先遍历 ====================
 
@@ -72,7 +72,7 @@ function* traverse(node: TreeNode | undefined): Generator<any, number> {
     return node.value + leftSum + rightSum;
 }
 
-console.log('树的所有节点之和:', run(traverse, tree), '\n');
+console.log('树的所有节点之和:', run(traverse(tree)), '\n');
 
 // ==================== 示例 4: 数组深度求和 ====================
 
@@ -84,8 +84,8 @@ function* arraySum(arr: number[], index = 0): Generator<any, number> {
     return arr[index] + (yield arraySum(arr, index + 1));
 }
 
-console.log('[1, 2, 3, 4, 5] 的和:', run(arraySum, [1, 2, 3, 4, 5]));
-console.log('[10, 20, 30, 40, 50] 的和:', run(arraySum, [10, 20, 30, 40, 50]), '\n');
+console.log('[1, 2, 3, 4, 5] 的和:', run(arraySum([1, 2, 3, 4, 5])));
+console.log('[10, 20, 30, 40, 50] 的和:', run(arraySum([10, 20, 30, 40, 50])), '\n');
 
 // ==================== 示例 5: 链表操作 ====================
 
@@ -121,8 +121,8 @@ function* listSum(node: ListNode | undefined, acc: number = 0) {
     return yield listSum(node.next, acc + node.value);
 }
 
-console.log('链表长度:', runTail(listLength, list));
-console.log('链表元素之和:', runTail(listSum, list), '\n');
+console.log('链表长度:', runTail(listLength(list)));
+console.log('链表元素之和:', runTail(listSum(list)), '\n');
 
 // ==================== 示例 6: 超深递归演示 ====================
 
@@ -138,7 +138,7 @@ function* deepCounter(n: number): Generator<any, number> {
 
 console.log('处理深度为 10000 的递归...');
 const start = Date.now();
-const result = runTail(deepCounter, 10000);
+const result = runTail(deepCounter(10000));
 const duration = Date.now() - start;
 
 console.log(`✅ 成功! 结果: ${result}, 耗时: ${duration}ms\n`);
@@ -155,7 +155,7 @@ function* factorialNormal(n: number, acc: number = 1) {
 
 console.log('计算 10000! (尾递归优化):');
 const t1 = Date.now();
-runTail(factorialNormal, 10000);
+runTail(factorialNormal(10000));
 const t2 = Date.now();
 console.log(`⏱️  耗时: ${t2 - t1}ms\n`);
 
