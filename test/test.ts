@@ -4,7 +4,7 @@
  * 使用 Node.js 内置的 test runner
  */
 
-import { run, runTail, isGenerator } from '../dist/index.js';
+import { run, runTail, isGenerator, isAsyncGenerator } from '../dist/index.js';
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
 
@@ -23,6 +23,22 @@ describe('isGenerator', () => {
         assert.strictEqual(isGenerator(undefined), false);
         assert.strictEqual(isGenerator(() => { }), false);
         assert.strictEqual(isGenerator({ [Symbol.iterator]: () => { } }), false);
+    });
+});
+
+describe('isAsyncGenerator', () => {
+    it('应该正确识别异步生成器对象', () => {
+        async function* gen() {
+            yield 1;
+        }
+        const g = gen();
+
+        assert.strictEqual(isAsyncGenerator(g), true);
+        assert.strictEqual(isAsyncGenerator({}), false);
+        assert.strictEqual(isAsyncGenerator(null), false);
+        assert.strictEqual(isAsyncGenerator(undefined), false);
+        assert.strictEqual(isAsyncGenerator(() => { }), false);
+        assert.strictEqual(isAsyncGenerator({ [Symbol.asyncIterator]: () => { } }), false);
     });
 });
 
