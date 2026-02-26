@@ -7,7 +7,7 @@
 [![npm 版本](https://img.shields.io/npm/v/recurun.svg)](https://www.npmjs.com/package/recurun)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-19%20passing-brightgreen.svg)](https://github.com/2234839/RecuRun)
+[![Tests](https://img.shields.io/badge/tests-26%20passing-brightgreen.svg)](https://github.com/2234839/RecuRun)
 
 English | **[简体中文](./README_zh.md)**
 

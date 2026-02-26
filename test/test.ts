@@ -4,7 +4,7 @@
  * 使用 Node.js 内置的 test runner
  */
 
-import { run, runTail, runAsync, runTailAsync, isGenerator, isAsyncGenerator } from '../dist/index.js';
+import { run, runTail, isGenerator, isAsyncGenerator } from '../dist/index.js';
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
 
@@ -326,7 +326,7 @@ describe('特殊递归形式', () => {
 
 // ==================== 测试异步递归 ====================
 
-describe('runAsync', () => {
+describe('run (async)', () => {
     it('应该正确计算异步斐波那契', async () => {
         async function* fibonacci(n: number): AsyncGenerator<any, number> {
             await new Promise(r => setTimeout(r, 1)); // 模拟异步操作
@@ -336,8 +336,8 @@ describe('runAsync', () => {
             return a + b;
         }
 
-        assert.strictEqual(await runAsync(fibonacci(10)), 55);
-        assert.strictEqual(await runAsync(fibonacci(15)), 610);
+        assert.strictEqual(await run(fibonacci(10)), 55);
+        assert.strictEqual(await run(fibonacci(15)), 610);
     });
 
     it('应该支持异步树遍历', async () => {
@@ -361,7 +361,7 @@ describe('runAsync', () => {
             return node.value + left + right;
         }
 
-        const result = await runAsync(traverse(tree));
+        const result = await run(traverse(tree));
         assert.strictEqual(result, 15); // 1+2+3+4+5 = 15
     });
 
@@ -372,12 +372,12 @@ describe('runAsync', () => {
             return arr[index] + (yield asyncSum(arr, index + 1));
         }
 
-        const result = await runAsync(asyncSum([1, 2, 3, 4, 5]));
+        const result = await run(asyncSum([1, 2, 3, 4, 5]));
         assert.strictEqual(result, 15);
     });
 });
 
-describe('runTailAsync', () => {
+describe('runTail (async)', () => {
     it('应该正确计算异步尾递归阶乘', async () => {
         async function* factorial(n: number, acc: number = 1): AsyncGenerator<any, number> {
             await new Promise(r => setTimeout(r, 1));
@@ -385,8 +385,8 @@ describe('runTailAsync', () => {
             return yield factorial(n - 1, acc * n);
         }
 
-        assert.strictEqual(await runTailAsync(factorial(5)), 120);
-        assert.strictEqual(await runTailAsync(factorial(10)), 3628800);
+        assert.strictEqual(await runTail(factorial(5)), 120);
+        assert.strictEqual(await runTail(factorial(10)), 3628800);
     });
 
     it('应该能处理超深异步递归', async () => {
@@ -397,8 +397,8 @@ describe('runTailAsync', () => {
         }
 
         // 测试超深异步递归 - 真正的尾递归优化!
-        assert.strictEqual(await runTailAsync(deepCounter(1000)), 0);
-        assert.strictEqual(await runTailAsync(deepCounter(5000)), 0);
+        assert.strictEqual(await runTail(deepCounter(1000)), 0);
+        assert.strictEqual(await runTail(deepCounter(5000)), 0);
     });
 
     it('应该支持异步链表遍历', async () => {
@@ -427,7 +427,7 @@ describe('runTailAsync', () => {
             return yield traverseList(node.next, acc + node.value);
         }
 
-        const result = await runTailAsync(traverseList(list));
+        const result = await runTail(traverseList(list));
         assert.strictEqual(result, 15);
     });
 
@@ -444,10 +444,10 @@ describe('runTailAsync', () => {
             return yield isEven(n - 1);
         }
 
-        assert.strictEqual(await runTailAsync(isEven(4)), true);
-        assert.strictEqual(await runTailAsync(isEven(5)), false);
-        assert.strictEqual(await runTailAsync(isOdd(4)), false);
-        assert.strictEqual(await runTailAsync(isOdd(5)), true);
+        assert.strictEqual(await runTail(isEven(4)), true);
+        assert.strictEqual(await runTail(isEven(5)), false);
+        assert.strictEqual(await runTail(isOdd(4)), false);
+        assert.strictEqual(await runTail(isOdd(5)), true);
     });
 });
 

@@ -383,6 +383,3 @@ export default {
     isGenerator,
     isAsyncGenerator
 };
-
-// 为了向后兼容，导出别名
-export { run as runAsync, runTail as runTailAsync };

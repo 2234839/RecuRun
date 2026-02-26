@@ -7,7 +7,7 @@ A lightweight, zero-dependency TypeScript library that allows you to write code 
 [![npm version](https://img.shields.io/npm/v/recurun.svg)](https://www.npmjs.com/package/recurun)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-19%20passing-brightgreen.svg)](https://github.com/2234839/RecuRun)
+[![Tests](https://img.shields.io/badge/tests-26%20passing-brightgreen.svg)](https://github.com/2234839/RecuRun)
 
 **[简体中文](./README_zh.md)** | English
 
@@ -18,7 +18,7 @@ A lightweight, zero-dependency TypeScript library that allows you to write code 
 - ⚡ **High Performance** - Optimized stack management and call mechanism
 - 🛡️ **Stable & Reliable** - Clear rules, no magic auto-detection
 - 📦 **Lightweight** - < 1KB when minified
-- 🧪 **Well Tested** - 19 comprehensive tests covering all recursion patterns
+- 🧪 **Well Tested** - 26 comprehensive tests covering all recursion patterns (sync & async)
 
 ## Installation
 
