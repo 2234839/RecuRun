@@ -45,23 +45,9 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Verify npm version
-        run: |
-          npm_version=$(npm -v)
-          echo "📦 npm 版本: $npm_version"
-          echo "✅ Node.js 20 自带的 npm 版本满足 OIDC requirements"
-          echo "📦 包名: recurun"
-          echo "📦 仓库: 2234839/RecuRun"
-
-      - name: Check npm whoami
-        run: |
-          npm whoami
-          echo "✅ OIDC 认证信息已获取"
-
       - name: Publish to npm
-        run: npm publish --access public --provenance
+        run: npm publish --provenance
         # 使用 OIDC，不需要 NPM_TOKEN
-        # --access public 发布为公开包
         # --provenance 标志启用包溯源（npm 推荐的安全实践）
 
       - name: Extract version from tag
