@@ -1,7 +1,7 @@
 {
   "name": "recurun",
   "version": "0.1.6",
-  "description": "极简的递归运行器库 - 用递归的方式写代码,以迭代的方式运行",
+  "description": "Write recursive code that runs iteratively - avoid stack overflow with zero dependencies",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

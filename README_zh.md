@@ -1,43 +1,39 @@
-# RecuRun: Recursive Runner Library
+# RecuRun: 递归运行器库
 
-> **Write Recursive, Run Iterative** — Write code in a recursive style but execute it iteratively, avoiding stack overflow.
+> **写递归代码，跑迭代执行** — 用递归的方式写代码，以迭代的方式运行，告别栈溢出。
 
-A lightweight, zero-dependency TypeScript library that allows you to write code in a recursive style but execute it iteratively. Say goodbye to stack overflow and embrace infinite recursion!
+一个轻量级、零依赖的 TypeScript 库，让你用递归风格编写代码，但以迭代方式执行。再也不用担心栈溢出，拥抱无限递归吧！
 
-[![npm version](https://img.shields.io/npm/v/recurun.svg)](https://www.npmjs.com/package/recurun)
+[![npm 版本](https://img.shields.io/npm/v/recurun.svg)](https://www.npmjs.com/package/recurun)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**[简体中文](./README_zh.md)** | English
+English | **[简体中文](./README_zh.md)**
 
-[![npm version](https://img.shields.io/npm/v/recurun.svg)](https://www.npmjs.com/package/recurun)
-[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+## ✨ 特性
 
-## ✨ Features
+- 🚀 **零依赖** - 纯 TypeScript 实现
+- 🔒 **类型安全** - 完整的 TypeScript 类型支持，IDE 提示友好
+- ⚡ **高性能** - 优化的栈管理和调用机制
+- 🛡️ **稳定可靠** - 规则清晰，没有魔法般的自动检测
+- 📦 **轻量级** - 压缩后小于 1KB
 
-- 🚀 **Zero Dependencies** - Pure TypeScript implementation
-- 🔒 **Type Safe** - Full TypeScript type support with excellent IDE hints
-- ⚡ **High Performance** - Optimized stack management and call mechanism
-- 🛡️ **Stable & Reliable** - Clear rules, no magic auto-detection
-- 📦 **Lightweight** - < 1KB when minified
-
-## Installation
+## 安装
 
 ```bash
 npm install recurun
-# or
+# 或
 yarn add recurun
-# or
+# 或
 pnpm add recurun
 ```
 
-## Quick Start
+## 快速开始
 
 ```typescript
 import { run, runTail } from 'recurun';
 
-// Example 1: Fibonacci sequence (any recursion)
+// 示例 1：斐波那契数列（任意递归）
 function* fibonacci(n: number): Generator<any, number> {
     if (n <= 2) return 1;
     const a = yield fibonacci(n - 1);
@@ -47,27 +43,27 @@ function* fibonacci(n: number): Generator<any, number> {
 
 console.log(run(fibonacci, 40)); // 102334155
 
-// Example 2: Tail-recursive factorial (with optimization)
+// 示例 2：尾递归阶乘（带优化）
 function* factorial(n: number, acc: number = 1): Generator<any, number> {
     if (n <= 1) return acc;
-    // Note: use yield (not yield*) with runTail
+    // 注意：配合 runTail 使用 yield（不是 yield*）
     return yield factorial(n - 1, acc * n);
 }
 
-// Can safely calculate very large numbers
-console.log(runTail(factorial, 100000)); // No stack overflow!
+// 可以安全计算超大数
+console.log(runTail(factorial, 100000)); // 不会栈溢出！
 ```
 
-## 🆕 Async Support
+## 🆕 异步支持
 
-RecuRun now supports async generators (`async function*`) for handling asynchronous recursive operations!
+RecuRun 现在支持异步生成器（`async function*`）来处理异步递归操作！
 
 ```typescript
 import { runAsync, runTailAsync } from 'recurun';
 
-// Example: Async Fibonacci
+// 示例：异步斐波那契
 async function* fibonacci(n: number): Promise<number> {
-    await new Promise(r => setTimeout(r, 10)); // Simulate async operation
+    await new Promise(r => setTimeout(r, 10)); // 模拟异步操作
     if (n <= 2) return 1;
     const a = yield fibonacci(n - 1);
     const b = yield fibonacci(n - 2);
@@ -76,26 +72,26 @@ async function* fibonacci(n: number): Promise<number> {
 
 console.log(await runAsync(fibonacci, 20)); // 6765
 
-// Example: Async Tail Recursion
+// 示例：异步尾递归
 async function* factorial(n: number, acc: number = 1): Promise<number> {
-    await new Promise(r => setTimeout(r, 10)); // Simulate async operation
+    await new Promise(r => setTimeout(r, 10)); // 模拟异步操作
     if (n <= 1) return acc;
     return yield factorial(n - 1, acc * n);
 }
 
-console.log(await runTailAsync(factorial, 10000)); // Infinity, no stack overflow!
+console.log(await runTailAsync(factorial, 10000)); // Infinity，不会栈溢出！
 ```
 
-## API Documentation
+## API 文档
 
 ### `run(genFunc, ...args)`
 
-Runs any recursive function using stack simulation to avoid stack overflow.
+使用栈模拟运行任意递归函数，避免栈溢出。
 
-**Use when:**
-- Multiple recursion branches
-- Need to perform operations after recursive calls
-- Tree structure traversal
+**适用于：**
+- 多分支递归
+- 需要在递归调用后执行操作
+- 树结构遍历
 
 ```typescript
 function run<T, TReturn>(
@@ -104,10 +100,10 @@ function run<T, TReturn>(
 ): TReturn
 ```
 
-**Example:**
+**示例：**
 
 ```typescript
-// Fibonacci sequence
+// 斐波那契数列
 function* fib(n: number): Generator<any, number> {
   if (n <= 2) return 1;
   const a = yield fib(n - 1);
@@ -117,7 +113,7 @@ function* fib(n: number): Generator<any, number> {
 
 const result = run(fib, 10); // 55
 
-// Tree traversal
+// 树遍历
 function* traverse(node: TreeNode): Generator<any, number> {
   if (!node) return 0;
   const left = yield traverse(node.left);
@@ -130,12 +126,12 @@ run(traverse, rootTree);
 
 ### `runTail(genFunc, ...args)`
 
-Runs tail-recursive optimized functions, achieving constant-level stack space usage.
+运行尾递归优化的函数，实现常量级栈空间使用。
 
-**Use when:**
-- Single recursion chain (like factorial, sum)
-- Ultra-deep recursion (depth > 10,000)
-- Linked list traversal
+**适用于：**
+- 单递归链（如阶乘、求和）
+- 超深递归（深度 > 10,000）
+- 链表遍历
 
 ```typescript
 function runTail<T, TReturn>(
@@ -144,20 +140,20 @@ function runTail<T, TReturn>(
 ): TReturn
 ```
 
-**Example:**
+**示例：**
 
 ```typescript
-// Tail-recursive factorial
+// 尾递归阶乘
 function* factorial(n: number, acc: number = 1): Generator<any, number> {
   if (n <= 1) return acc;
-  // Note: use yield (not yield*) - runTail assumes all calls are tail calls
+  // 注意：使用 yield（不是 yield*）- runTail 假设所有调用都是尾调用
   return yield factorial(n - 1, acc * n);
 }
 
-// Can safely calculate huge numbers
+// 可以安全计算巨大数字
 const result = runTail(factorial, 100000);
 
-// Tail-recursive list traversal
+// 尾递归链表遍历
 function* traverseList(list: ListNode): Generator<any, number> {
   if (!list) return 0;
   return yield traverseList(list.next);
@@ -166,13 +162,13 @@ function* traverseList(list: ListNode): Generator<any, number> {
 
 ### `isGenerator(value)`
 
-Checks if a value is a Generator object.
+检查一个值是否是 Generator 对象。
 
 ```typescript
 function isGenerator(value: any): value is Generator
 ```
 
-**Example:**
+**示例：**
 
 ```typescript
 function* gen() { yield 1; }
@@ -185,12 +181,12 @@ isGenerator(null);   // false
 
 ### `runAsync(genFunc, ...args)`
 
-Runs any async recursive function using stack simulation to avoid stack overflow.
+使用栈模拟运行任意异步递归函数，避免栈溢出。
 
-**Use when:**
-- Handling asynchronous recursive operations
-- Need to fetch/process data recursively
-- Async tree structure traversal
+**适用于：**
+- 处理异步递归操作
+- 需要递归获取/处理数据
+- 异步树结构遍历
 
 ```typescript
 function runAsync<T, TReturn>(
@@ -199,10 +195,10 @@ function runAsync<T, TReturn>(
 ): Promise<TReturn>
 ```
 
-**Example:**
+**示例：**
 
 ```typescript
-// Async Fibonacci
+// 异步斐波那契
 async function* fib(n: number): Promise<number> {
   await new Promise(r => setTimeout(r, 10));
   if (n <= 2) return 1;
@@ -213,7 +209,7 @@ async function* fib(n: number): Promise<number> {
 
 const result = await runAsync(fib, 20);
 
-// Async data fetching
+// 异步数据获取
 async function* fetchAllUsers(ids: number[]): Promise<User[]> {
   if (ids.length === 0) return [];
   const user = await fetchUser(ids[0]);
@@ -226,12 +222,12 @@ const users = await runAsync(fetchAllUsers, [1, 2, 3, 4, 5]);
 
 ### `runTailAsync(genFunc, ...args)`
 
-Runs async tail-recursive optimized functions with constant-level stack space usage.
+运行异步尾递归优化函数，实现常量级栈空间使用。
 
-**Use when:**
-- Async single recursion chain
-- Ultra-deep async recursion (depth > 10,000)
-- Async linked list traversal
+**适用于：**
+- 异步单递归链
+- 超深异步递归（深度 > 10,000）
+- 异步链表遍历
 
 ```typescript
 function runTailAsync<T, TReturn>(
@@ -240,10 +236,10 @@ function runTailAsync<T, TReturn>(
 ): Promise<TReturn>
 ```
 
-**Example:**
+**示例：**
 
 ```typescript
-// Async tail-recursive factorial
+// 异步尾递归阶乘
 async function* factorial(n: number, acc: number = 1): Promise<number> {
   await new Promise(r => setTimeout(r, 10));
   if (n <= 1) return acc;
@@ -252,23 +248,23 @@ async function* factorial(n: number, acc: number = 1): Promise<number> {
 
 const result = await runTailAsync(factorial, 10000);
 
-// Async list traversal
+// 异步链表遍历
 async function* traverseList(list: ListNode): Promise<number> {
   if (!list) return 0;
-  await list.loadNext(); // Simulate async operation
+  await list.loadNext(); // 模拟异步操作
   return yield traverseList(list.next);
 }
 ```
 
 ### `isAsyncGenerator(value)`
 
-Checks if a value is an AsyncGenerator object.
+检查一个值是否是 AsyncGenerator 对象。
 
 ```typescript
 function isAsyncGenerator(value: any): value is AsyncGenerator
 ```
 
-**Example:**
+**示例：**
 
 ```typescript
 async function* gen() { yield 1; }
@@ -279,30 +275,30 @@ isAsyncGenerator({});     // false
 isAsyncGenerator(null);   // false
 ```
 
-## Performance
+## 性能
 
-### Benchmarks
+### 基准测试
 
-| Scenario | Recursion Depth | Normal Recursion | `run` | `runTail` |
-|----------|----------------|------------------|-------|-----------|
-| Factorial | 10,000 | Stack overflow ❌ | 15ms ✅ | 12ms ✅ |
-| Factorial | 100,000 | Stack overflow ❌ | Stack overflow ❌ | 98ms ✅ |
-| Fibonacci | 40 | 2.3s ✅ | 2.5s ✅ | N/A |
-| Fibonacci | 50 | Timeout ❌ | Timeout ❌ | N/A |
+| 场景 | 递归深度 | 普通递归 | `run` | `runTail` |
+|------|----------|----------|-------|-----------|
+| 阶乘 | 10,000 | 栈溢出 ❌ | 15ms ✅ | 12ms ✅ |
+| 阶乘 | 100,000 | 栈溢出 ❌ | 栈溢出 ❌ | 98ms ✅ |
+| 斐波那契 | 40 | 2.3s ✅ | 2.5s ✅ | N/A |
+| 斐波那契 | 50 | 超时 ❌ | 超时 ❌ | N/A |
 
-> Note: Test environment: Node.js v24, performance may vary by machine
+> 注意：测试环境：Node.js v24，性能可能因机器而异
 
-## Usage Guide
+## 使用指南
 
-### When to use `run`?
+### 何时使用 `run`？
 
-Use when your recursive function has multiple branches or needs to perform operations after recursive calls:
+当你的递归函数有多个分支或需要在递归调用后执行操作时：
 
 ```typescript
 function* treeSum(node: TreeNode | null): Generator<any, number> {
   if (!node) return 0;
 
-  // Need to combine results from two recursive calls
+  // 需要合并两个递归调用的结果
   const leftSum = yield treeSum(node.left);
   const rightSum = yield treeSum(node.right);
 
@@ -312,57 +308,57 @@ function* treeSum(node: TreeNode | null): Generator<any, number> {
 const total = run(treeSum, root);
 ```
 
-### When to use `runTail`?
+### 何时使用 `runTail`？
 
-Use when the recursive call is the last operation in your function:
+当递归调用是函数的最后一个操作时：
 
 ```typescript
 function* arraySum(arr: number[], index: number = 0, acc: number = 0): Generator<any, number> {
   if (index >= arr.length) return acc;
-  // Tail recursive call
+  // 尾递归调用
   return yield arraySum(arr, index + 1, acc + arr[index]);
 }
 
 const sum = runTail(arraySum, [1, 2, 3, 4, 5]); // 15
 ```
 
-### Best Practices
+### 最佳实践
 
-1. **Choose the right runner**
+1. **选择正确的运行器**
    ```typescript
-   // ✅ Correct
-   return yield tailRecursive();  // Tail recursion: use runTail
-   return (yield normalRecursive()) + x; // Normal recursion: use run
+   // ✅ 正确
+   return yield tailRecursive();  // 尾递归：使用 runTail
+   return (yield normalRecursive()) + x; // 普通递归：使用 run
    ```
 
-2. **Use `yield` not `yield*` with runTail**
+2. **配合 runTail 使用 `yield` 而不是 `yield*`**
    ```typescript
-   // ✅ Correct
+   // ✅ 正确
    function* factorial(n, acc = 1) {
      if (n <= 1) return acc;
-     return yield factorial(n - 1, acc * n);  // Use yield
+     return yield factorial(n - 1, acc * n);  // 使用 yield
    }
 
-   // ❌ Wrong - will cause stack overflow
+   // ❌ 错误 - 会导致栈溢出
    function* factorialBad(n, acc = 1) {
      if (n <= 1) return acc;
-     return yield* factorialBad(n - 1, acc * n);  // Don't use yield*
+     return yield* factorialBad(n - 1, acc * n);  // 不要使用 yield*
    }
    ```
 
-3. **Be careful with very deep normal recursion**
+3. **小心超深的普通递归**
    ```typescript
-   // ⚠️ Deep binary tree traversal might be slow
+   // ⚠️ 深二叉树遍历可能会很慢
    function* deepTree(node: TreeNode) {
      if (!node) return;
-     yield deepTree(node.left);   // Each node pushes to stack
+     yield deepTree(node.left);   // 每个节点都压入栈
      yield deepTree(node.right);
    }
    ```
 
-## Real-World Examples
+## 实际应用示例
 
-### Tree Traversal
+### 树遍历
 
 ```typescript
 interface TreeNode {
@@ -381,7 +377,7 @@ function* traverse(node: TreeNode | undefined): Generator<any, number> {
 const total = run(traverse, rootTree);
 ```
 
-### Linked List Operations
+### 链表操作
 
 ```typescript
 interface ListNode {
@@ -403,7 +399,7 @@ const len = runTail(listLength, myList);
 const sum = runTail(listSum, myList);
 ```
 
-### Array Processing
+### 数组处理
 
 ```typescript
 function* arraySum(arr: number[], index = 0): Generator<any, number> {
@@ -414,23 +410,23 @@ function* arraySum(arr: number[], index = 0): Generator<any, number> {
 const total = run(arraySum, [1, 2, 3, 4, 5]); // 15
 ```
 
-## Technical Details
+## 技术细节
 
-RecuRun uses **explicit stack simulation** to avoid stack overflow:
+RecuRun 使用**显式栈模拟**来避免栈溢出：
 
-1. **Standard recursion (`run`)**:
-   - Maintains an explicit stack array
-   - Pushes to stack when `yield` encounters a generator
-   - Pops from stack when generator completes
-   - Space complexity: O(n)
+1. **标准递归（`run`）**：
+   - 维护一个显式栈数组
+   - 当 `yield` 遇到生成器时压入栈
+   - 生成器完成时从栈弹出
+   - 空间复杂度：O(n)
 
-2. **Tail recursion optimization (`runTail`)**:
-   - Directly switches generators without creating new stack frames
-   - Achieves constant-level stack space usage
-   - Space complexity: O(1)
+2. **尾递归优化（`runTail`）**：
+   - 直接切换生成器而不创建新栈帧
+   - 实现常量级栈空间使用
+   - 空间复杂度：O(1)
 
 ```
-Normal recursion:
+普通递归：
 fib(5)
   ├─ fib(4)
   │   ├─ fib(3)
@@ -440,22 +436,22 @@ fib(5)
       └─ ...
 
 RecuRun (run):
-Stack: [fib(5)] → [fib(5), fib(4)] → [fib(5), fib(4), fib(3)] → ...
+栈: [fib(5)] → [fib(5), fib(4)] → [fib(5), fib(4), fib(3)] → ...
 
 RecuRun (runTail):
-Current: factorial(100000) → factorial(99999) → factorial(99998) → ...
-(Stack frame reuse, no growth!)
+当前: factorial(100000) → factorial(99999) → factorial(99998) → ...
+(栈帧复用，不会增长！)
 ```
 
-## Comparison with Traditional Trampoline
+## 与传统 Trampoline 的对比
 
-### ❌ Traditional Trampoline
+### ❌ 传统 Trampoline
 
 ```typescript
-// Need to return thunks, code readability is poor
+// 需要返回 thunks，代码可读性差
 function factorial(n, acc = 1) {
   if (n <= 1) return acc;
-  return () => factorial(n - 1, acc * n);  // Return function
+  return () => factorial(n - 1, acc * n);  // 返回函数
 }
 
 const trampoline = fn => (...args) => {
@@ -467,37 +463,37 @@ const trampoline = fn => (...args) => {
 };
 ```
 
-**Problems:**
-- Need to change coding style, return thunks
-- Poor code readability, unintuitive
-- Difficult type inference
+**问题：**
+- 需要改变编码风格，返回 thunks
+- 代码可读性差，不直观
+- 类型推断困难
 
-### ✅ RecuRun Approach
+### ✅ RecuRun 方式
 
 ```typescript
-// Maintain natural recursive writing style!
+// 保持自然的递归写法！
 import { runTail } from 'recurun';
 
 function* factorial(n: number, acc: number = 1) {
   if (n <= 1) return acc;
-  return yield factorial(n - 1, acc * n);  // Natural recursion
+  return yield factorial(n - 1, acc * n);  // 自然递归
 }
 
-// Safe calculation, no stack overflow
+// 安全计算，不会栈溢出
 const result = runTail(factorial, 100000);
 ```
 
-**Advantages:**
-- Uses Generator's native syntax (`yield`)
-- Maintains intuitive recursive writing
-- Complete type inference and IDE support
+**优势：**
+- 使用 Generator 的原生语法（`yield`）
+- 保持直观的递归写法
+- 完整的类型推断和 IDE 支持
 
-## License
+## 许可证
 
 MIT © 2024 RecuRun Team
 
 ---
 
-**RecuRun** — Write Recursive, Run Iterative. No more stack overflow, just elegant code.
+**RecuRun** — 写递归代码，跑迭代执行。不再有栈溢出，只有优雅的代码。
 
-**[简体中文](./README_zh.md)** | English
+English | **[简体中文](./README_zh.md)**
