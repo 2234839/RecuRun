@@ -52,8 +52,9 @@ jobs:
           echo "✅ Node.js 20 自带的 npm 版本满足 OIDC 要求"
 
       - name: Publish to npm
-        run: npm publish --provenance
+        run: npm publish --access public --provenance
         # 使用 OIDC，不需要 NPM_TOKEN
+        # --access public 发布为公开包
         # --provenance 标志启用包溯源（npm 推荐的安全实践）
 
       - name: Extract version from tag
@@ -66,7 +67,7 @@ jobs:
           body: |
             ## Release ${{ steps.get_version.outputs.version }}
 
-            See [CHANGELOG.md](https://github.com/your-org/recurun/blob/main/CHANGELOG.md) for details.
+            See [CHANGELOG.md](https://github.com/2234839/RecuRun/blob/main/CHANGELOG.md) for details.
           draft: false
           prerelease: false
         env:
