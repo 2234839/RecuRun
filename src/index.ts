@@ -8,18 +8,7 @@
  */
 
 // ==================== 类型定义 ====================
-
-/**
- * 栈帧接口
- *
- * @internal
- */
-interface StackFrame<T, TReturn> {
-    /** 生成器对象 */
-    generator: Generator<T, TReturn>;
-    /** 是否为尾调用 */
-    isTailCall: boolean;
-}
+// (无 - 不需要额外的类型定义)
 
 // ==================== 工具函数 ====================
 
@@ -141,7 +130,7 @@ function runSyncImpl<T, TReturn>(
     generator: Generator<T, TReturn>
 ): TReturn {
     // 性能优化：预分配栈容量（常见深度 1024）
-    const stack: StackFrame<T, TReturn>[] = new Array(1024);
+    const stack: Generator<T, TReturn>[] = new Array(1024);
     let stackSize = 0;
 
     // 当前执行的生成器
@@ -161,19 +150,16 @@ function runSyncImpl<T, TReturn>(
             }
 
             // 弹出上一个栈帧
-            stackSize--;
-            const frame = stack[stackSize];
-            if (!frame) {
+            current = stack[--stackSize]!;
+            if (!current) {
                 throw new Error('Stack frame is undefined');
             }
-            current = frame.generator;
             ret = r.value;
         } else {
             // 生成器产生了一个值
             if (isGenerator(r.value)) {
                 // 产生的是子生成器：压栈
-                stack[stackSize] = { generator: current, isTailCall: false };
-                stackSize++;
+                stack[stackSize++] = current;
 
                 // 切换到子生成器
                 current = r.value as Generator<T, TReturn>;
@@ -193,7 +179,7 @@ async function runAsyncImpl<T, TReturn>(
     generator: AsyncGenerator<T, TReturn>
 ): Promise<TReturn> {
     // 性能优化：预分配栈容量
-    const stack: Array<{ generator: AsyncGenerator<T, TReturn>; isTailCall: boolean }> = new Array(1024);
+    const stack: AsyncGenerator<T, TReturn>[] = new Array(1024);
     let stackSize = 0;
 
     // 当前执行的异步生成器
@@ -213,19 +199,16 @@ async function runAsyncImpl<T, TReturn>(
             }
 
             // 弹出上一个栈帧
-            stackSize--;
-            const frame = stack[stackSize];
-            if (!frame) {
+            current = stack[--stackSize]!;
+            if (!current) {
                 throw new Error('Stack frame is undefined');
             }
-            current = frame.generator;
             ret = r.value;
         } else {
             // 异步生成器产生了一个值
             if (isAsyncGenerator(r.value)) {
                 // 产生的是子异步生成器：压栈
-                stack[stackSize] = { generator: current, isTailCall: false };
-                stackSize++;
+                stack[stackSize++] = current;
 
                 // 切换到子异步生成器
                 current = r.value as AsyncGenerator<T, TReturn>;

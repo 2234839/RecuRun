@@ -182,7 +182,7 @@ function* listSumRecuRun(node: ListNode | undefined): Generator<unknown, number>
 }
 
 /**
- * 普通递归最大公约数
+ * 普通递归最大公约数 (多参数)
  */
 function gcdRecursive(a: number, b: number): number {
     if (b === 0) return a;
@@ -190,7 +190,7 @@ function gcdRecursive(a: number, b: number): number {
 }
 
 /**
- * RecuRun 最大公约数
+ * RecuRun 最大公约数 (多参数)
  */
 function* gcdRecuRun(a: number, b: number): Generator<unknown, number> {
     if (b === 0) return a;
@@ -238,7 +238,7 @@ function* quickSortRecuRun(arr: number[]): Generator<unknown, number[]> {
 }
 
 /**
- * 普通递归汉诺塔
+ * 普通递归汉诺塔 (多参数)
  */
 function hanoiRecursive(n: number, from: string = 'A', to: string = 'C', aux: string = 'B'): string[] {
     if (n === 1) return [`${from} → ${to}`];
@@ -249,7 +249,7 @@ function hanoiRecursive(n: number, from: string = 'A', to: string = 'C', aux: st
 }
 
 /**
- * RecuRun 汉诺塔
+ * RecuRun 汉诺塔 (多参数)
  */
 function* hanoiRecuRun(n: number, from: string = 'A', to: string = 'C', aux: string = 'B'): Generator<unknown, string[]> {
     if (n === 1) return [`${from} → ${to}`];
@@ -257,6 +257,48 @@ function* hanoiRecuRun(n: number, from: string = 'A', to: string = 'C', aux: str
     const moves2 = [`${from} → ${to}`];
     const moves3 = yield hanoiRecuRun(n - 1, aux, to, from);
     return [...moves1, ...moves2, ...moves3];
+}
+
+/**
+ * 普通递归数组范围求和 (多参数)
+ */
+function rangeSumRecursive(arr: number[], start: number, end: number): number {
+    if (start > end) return 0;
+    if (start === end) return arr[start];
+    const mid = Math.floor((start + end) / 2);
+    return rangeSumRecursive(arr, start, mid) + rangeSumRecursive(arr, mid + 1, end);
+}
+
+/**
+ * RecuRun 数组范围求和 (多参数)
+ */
+function* rangeSumRecuRun(arr: number[], start: number, end: number): Generator<unknown, number> {
+    if (start > end) return 0;
+    if (start === end) return arr[start];
+    const mid = Math.floor((start + end) / 2);
+    return (yield rangeSumRecuRun(arr, start, mid)) + (yield rangeSumRecuRun(arr, mid + 1, end));
+}
+
+/**
+ * 普通递归幂运算 (多参数)
+ */
+function powerRecursive(base: number, exp: number): number {
+    if (exp === 0) return 1;
+    if (exp === 1) return base;
+    const half = powerRecursive(base, Math.floor(exp / 2));
+    if (exp % 2 === 0) return half * half;
+    return base * half * half;
+}
+
+/**
+ * RecuRun 幂运算 (多参数)
+ */
+function* powerRecuRun(base: number, exp: number): Generator<unknown, number> {
+    if (exp === 0) return 1;
+    if (exp === 1) return base;
+    const half = yield powerRecuRun(base, Math.floor(exp / 2));
+    if (exp % 2 === 0) return half * half;
+    return base * half * half;
 }
 
 // ==================== 性能测试工具 ====================
@@ -305,6 +347,7 @@ async function runBenchmarks(): Promise<void> {
     console.log('\n🚀 RecuRun 性能基准测试');
     console.log('='.repeat(60));
     console.log('测试覆盖: 斐波那契、阶乘、树遍历、链表、排序、汉诺塔等');
+    console.log('新增: 多参数测试 (GCD、汉诺塔、范围求和、幂运算)');
     console.log('='.repeat(60));
 
     // ========== 第一组: 基础递归 ==========
@@ -341,26 +384,26 @@ async function runBenchmarks(): Promise<void> {
     console.log('\n\n📚 第二组: 尾递归优化');
     console.log('─'.repeat(60));
 
-    // 测试 3: 尾递归阶乘 (中等规模)
-    console.log('\n📊 测试 3: 尾递归阶乘 (n=5000)');
+    // 测试 3: 尾递归阶乘 (中等规模,多参数)
+    console.log('\n📊 测试 3: 尾递归阶乘 (n=5000, acc=1, 多参数)');
     let factorialTailRecursiveTime = 0;
     let factorialTailRecursiveResult = 0;
     try {
         factorialTailRecursiveTime = measureTime(() => {
-            factorialTailRecursive(5000);
+            factorialTailRecursive(5000, 1);
         });
-        factorialTailRecursiveResult = factorialTailRecursive(5000);
+        factorialTailRecursiveResult = factorialTailRecursive(5000, 1);
     } catch (error) {
         console.log('普通递归:     ❌ 栈溢出');
     }
 
     const factorialTailRecuRunTime = measureTime(() => {
-        runTail(factorialTailRecuRun(5000));
+        runTail(factorialTailRecuRun(5000, 1));
     });
-    const factorialTailRecuRunResult = runTail(factorialTailRecuRun(5000));
+    const factorialTailRecuRunResult = runTail(factorialTailRecuRun(5000, 1));
 
     if (factorialTailRecursiveTime > 0) {
-        formatResult('尾递归阶乘 (n=5000)', factorialTailRecursiveTime, factorialTailRecuRunTime, factorialTailRecursiveResult, factorialTailRecuRunResult);
+        formatResult('尾递归阶乘 (n=5000, acc=1)', factorialTailRecursiveTime, factorialTailRecuRunTime, factorialTailRecursiveResult, factorialTailRecuRunResult);
     } else {
         console.log(`RecuRun:      ${factorialTailRecuRunTime.toFixed(3)} ms`);
         console.log('状态:         ✅ 成功 (避免栈溢出)');
@@ -505,13 +548,13 @@ async function runBenchmarks(): Promise<void> {
         formatOverflowResult('链表求和 (5000 节点)', listSumRecuRunTime, listSumRecuRunResult);
     }
 
-    // ========== 第六组: 数学算法 ==========
+    // ========== 第六组: 数学算法 (多参数) ==========
 
-    console.log('\n\n📚 第六组: 数学算法');
+    console.log('\n\n📚 第六组: 数学算法 (多参数测试)');
     console.log('─'.repeat(60));
 
-    // 测试 10: 最大公约数 (欧几里得算法)
-    console.log('\n📊 测试 10: 最大公约数 (GCD, 100000 轮迭代)');
+    // 测试 10: 最大公约数 (欧几里得算法,多参数)
+    console.log('\n📊 测试 10: 最大公约数 GCD(1071, 462), 100000 轮迭代');
     const gcdRecursiveTime = measureTime(() => {
         for (let i = 0; i < 100000; i++) {
             gcdRecursive(1071, 462);
@@ -524,7 +567,7 @@ async function runBenchmarks(): Promise<void> {
     });
     const gcdRecursiveResult = gcdRecursive(1071, 462);
     const gcdRecuRunResult = run(gcdRecuRun(1071, 462));
-    console.log('GCD(1071, 462)');
+    console.log('GCD(1071, 462) - 多参数测试');
     console.log('─'.repeat(60));
     console.log(`普通递归:     ${gcdRecursiveTime.toFixed(3)} ms (100000 次)`);
     console.log(`RecuRun:      ${gcdRecuRunTime.toFixed(3)} ms (100000 次)`);
@@ -532,13 +575,35 @@ async function runBenchmarks(): Promise<void> {
     console.log(`结果正确性:   ${gcdRecursiveResult === gcdRecuRunResult ? '✅ 通过' : '❌ 失败'}`);
     console.log(`结果:         ${gcdRecursiveResult}`);
 
+    // 测试 11: 幂运算 (多参数)
+    console.log('\n📊 测试 11: 幂运算 2^1000, 10000 轮迭代');
+    const powerRecursiveTime = measureTime(() => {
+        for (let i = 0; i < 10000; i++) {
+            powerRecursive(2, 1000);
+        }
+    });
+    const powerRecuRunTime = measureTime(() => {
+        for (let i = 0; i < 10000; i++) {
+            run(powerRecuRun(2, 1000));
+        }
+    });
+    const powerRecursiveResult = powerRecursive(2, 1000);
+    const powerRecuRunResult = run(powerRecuRun(2, 1000));
+    console.log('幂运算 2^1000 - 多参数测试');
+    console.log('─'.repeat(60));
+    console.log(`普通递归:     ${powerRecursiveTime.toFixed(3)} ms (10000 次)`);
+    console.log(`RecuRun:      ${powerRecuRunTime.toFixed(3)} ms (10000 次)`);
+    console.log(`性能差距:     ${(powerRecuRunTime / powerRecursiveTime).toFixed(2)}x`);
+    console.log(`结果正确性:   ${JSON.stringify(powerRecursiveResult) === JSON.stringify(powerRecuRunResult) ? '✅ 通过' : '❌ 失败'}`);
+    console.log(`结果长度:     ${JSON.stringify(powerRecursiveResult).length} 位`);
+
     // ========== 第七组: 排序算法 ==========
 
     console.log('\n\n📚 第七组: 排序算法');
     console.log('─'.repeat(60));
 
-    // 测试 11: 快速排序
-    console.log('\n📊 测试 11: 快速排序 (500 个随机元素)');
+    // 测试 12: 快速排序
+    console.log('\n📊 测试 12: 快速排序 (500 个随机元素)');
     const unsortedArray = Array.from({ length: 500 }, () => Math.random() * 1000);
     const quickSortRecursiveTime = measureTime(() => {
         quickSortRecursive(unsortedArray);
@@ -556,22 +621,22 @@ async function runBenchmarks(): Promise<void> {
     console.log(`结果正确性:   ${JSON.stringify(quickSortRecursiveResult.slice(0, 10)) === JSON.stringify(quickSortRecuRunResult.slice(0, 10)) ? '✅ 通过' : '❌ 失败'}`);
     console.log(`前 10 个:     [${quickSortRecursiveResult.slice(0, 10).map(n => n.toFixed(1)).join(', ')}...]`);
 
-    // ========== 第八组: 复杂递归 ==========
+    // ========== 第八组: 复杂递归 (多参数) ==========
 
-    console.log('\n\n📚 第八组: 复杂递归问题');
+    console.log('\n\n📚 第八组: 复杂递归问题 (多参数测试)');
     console.log('─'.repeat(60));
 
-    // 测试 12: 汉诺塔
-    console.log('\n📊 测试 12: 汉诺塔 (15 层, 32767 步)');
+    // 测试 13: 汉诺塔 (多参数)
+    console.log('\n📊 测试 13: 汉诺塔 (15 层, from=A, to=C, aux=B)');
     const hanoiRecursiveTime = measureTime(() => {
-        hanoiRecursive(15);
+        hanoiRecursive(15, 'A', 'C', 'B');
     });
     const hanoiRecuRunTime = measureTime(() => {
-        run(hanoiRecuRun(15));
+        run(hanoiRecuRun(15, 'A', 'C', 'B'));
     });
-    const hanoiRecursiveResult = hanoiRecursive(15);
-    const hanoiRecuRunResult = run(hanoiRecuRun(15));
-    console.log('汉诺塔 (15 层)');
+    const hanoiRecursiveResult = hanoiRecursive(15, 'A', 'C', 'B');
+    const hanoiRecuRunResult = run(hanoiRecuRun(15, 'A', 'C', 'B'));
+    console.log('汉诺塔 (15 层, 多参数)');
     console.log('─'.repeat(60));
     console.log(`普通递归:     ${hanoiRecursiveTime.toFixed(3)} ms`);
     console.log(`RecuRun:      ${hanoiRecuRunTime.toFixed(3)} ms`);
@@ -579,13 +644,32 @@ async function runBenchmarks(): Promise<void> {
     console.log(`结果正确性:   ${hanoiRecursiveResult.length === hanoiRecuRunResult.length ? '✅ 通过' : '❌ 失败'}`);
     console.log(`步数:         ${hanoiRecursiveResult.length}`);
 
+    // 测试 14: 数组范围求和 (多参数)
+    console.log('\n📊 测试 14: 数组范围求和 (0-4999, 二分递归, 多参数)');
+    const rangeArray = Array.from({ length: 5000 }, (_, i) => i);
+    const rangeSumRecursiveTime = measureTime(() => {
+        rangeSumRecursive(rangeArray, 0, 4999);
+    });
+    const rangeSumRecuRunTime = measureTime(() => {
+        run(rangeSumRecuRun(rangeArray, 0, 4999));
+    });
+    const rangeSumRecursiveResult = rangeSumRecursive(rangeArray, 0, 4999);
+    const rangeSumRecuRunResult = run(rangeSumRecuRun(rangeArray, 0, 4999));
+    console.log('数组范围求和 (0-4999) - 多参数测试');
+    console.log('─'.repeat(60));
+    console.log(`普通递归:     ${rangeSumRecursiveTime.toFixed(3)} ms`);
+    console.log(`RecuRun:      ${rangeSumRecuRunTime.toFixed(3)} ms`);
+    console.log(`性能差距:     ${(rangeSumRecuRunTime / rangeSumRecursiveTime).toFixed(2)}x`);
+    console.log(`结果正确性:   ${rangeSumRecursiveResult === rangeSumRecuRunResult ? '✅ 通过' : '❌ 失败'}`);
+    console.log(`结果:         ${rangeSumRecursiveResult}`);
+
     // ========== 第九组: 极深递归对比 ==========
 
     console.log('\n\n📚 第九组: 极深递归对比 (RecuRun 的优势场景)');
     console.log('─'.repeat(60));
 
-    // 测试 13: 深度递归对比
-    console.log('\n📊 测试 13: 深度递归对比 (阶乘 n=5000)');
+    // 测试 15: 深度递归对比
+    console.log('\n📊 测试 15: 深度递归对比 (阶乘 n=5000)');
     try {
         const deepRecursiveTime = measureTime(() => {
             factorialRecursive(5000);
@@ -606,11 +690,11 @@ async function runBenchmarks(): Promise<void> {
         console.log(`RecuRun:      ❌ 失败`);
     }
 
-    // 测试 14: 极深递归 (只有 RecuRun 能处理)
-    console.log('\n📊 测试 14: 极深递归对比 (阶乘 n=100000)');
+    // 测试 16: 极深递归 (只有 RecuRun 能处理)
+    console.log('\n📊 测试 16: 极深递归对比 (阶乘 n=100000)');
     try {
         measureTime(() => {
-            factorialTailRecursive(100000);
+            factorialTailRecursive(100000, 1);
         });
         console.log(`普通递归:     ❌ 栈溢出`);
     } catch (error) {
@@ -619,7 +703,7 @@ async function runBenchmarks(): Promise<void> {
 
     try {
         const veryDeepRecuRunTime = measureTime(() => {
-            runTail(factorialTailRecuRun(100000));
+            runTail(factorialTailRecuRun(100000, 1));
         });
         console.log(`RecuRun:      ${veryDeepRecuRunTime.toFixed(3)} ms`);
         console.log('状态:         ✅ 成功 (避免栈溢出)');
@@ -660,6 +744,12 @@ async function runBenchmarks(): Promise<void> {
     console.log('  ✅ 多分支递归 (树求和、汉诺塔)');
     console.log('  ✅ 复杂递归 (快速排序)');
     console.log('  ✅ 深度递归 (> 100,000 层)');
+    console.log('  ✅ 多参数递归 (GCD、汉诺塔、范围求和、幂运算)');
+
+    console.log('\n🚀 性能优化:');
+    console.log('  • 移除了无用的 isTailCall 字段');
+    console.log('  • 栈帧从对象改为直接存储生成器');
+    console.log('  • 减少了内存分配和属性访问开销');
 
     console.log('\n' + '='.repeat(60) + '\n');
 }
