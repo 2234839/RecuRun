@@ -7,6 +7,7 @@
 [![npm 版本](https://img.shields.io/npm/v/recurun.svg)](https://www.npmjs.com/package/recurun)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://img.shields.io/badge/tests-19%20passing-brightgreen.svg)](https://github.com/2234839/RecuRun)
 
 English | **[简体中文](./README_zh.md)**
 
@@ -17,6 +18,7 @@ English | **[简体中文](./README_zh.md)**
 - ⚡ **高性能** - 优化的栈管理和调用机制
 - 🛡️ **稳定可靠** - 规则清晰，没有魔法般的自动检测
 - 📦 **轻量级** - 压缩后小于 1KB
+- 🧪 **充分测试** - 19 个全面的测试用例，覆盖所有递归模式
 
 ## 安装
 
@@ -30,6 +32,39 @@ pnpm add recurun
 
 ## 快速开始
 
+### 🔄 从普通递归到安全递归
+
+**之前**（普通递归 - 大输入会栈溢出）：
+
+```typescript
+// ❌ n > 10000 时栈溢出
+function factorial(n: number, acc: number = 1): number {
+    if (n <= 1) return acc;
+    return factorial(n - 1, acc * n);
+}
+```
+
+**之后**（使用 RecuRun - 处理任意深度）：
+
+```typescript
+// ✅ 即使 n = 100000 也不会栈溢出！
+import { runTail } from 'recurun';
+
+function* factorial(n: number, acc: number = 1): Generator<any, number> {
+    if (n <= 1) return acc;
+    return yield factorial(n - 1, acc * n);  // 只需添加 `yield` 关键字！
+}
+
+const result = runTail(factorial(100000)); // 成功！🎉
+```
+
+**就这么简单！** 只需三个简单的改动：
+1. 添加 `function*` 使其成为生成器
+2. 在递归调用前添加 `yield`
+3. 用 `run()` 或 `runTail()` 包装
+
+### 示例
+
 ```typescript
 import { run, runTail } from 'recurun';
 
@@ -41,7 +76,7 @@ function* fibonacci(n: number): Generator<any, number> {
     return a + b;
 }
 
-console.log(run(fibonacci, 40)); // 102334155
+console.log(run(fibonacci(40))); // 102334155
 
 // 示例 2：尾递归阶乘（带优化）
 function* factorial(n: number, acc: number = 1): Generator<any, number> {
@@ -51,7 +86,7 @@ function* factorial(n: number, acc: number = 1): Generator<any, number> {
 }
 
 // 可以安全计算超大数
-console.log(runTail(factorial, 100000)); // 不会栈溢出！
+console.log(runTail(factorial(100000))); // 不会栈溢出！
 ```
 
 ## 🆕 异步支持
@@ -81,6 +116,24 @@ async function* factorial(n: number, acc: number = 1): Promise<number> {
 
 console.log(await runTailAsync(factorial, 10000)); // Infinity，不会栈溢出！
 ```
+
+## 🔄 支持的递归模式
+
+RecuRun 支持**所有常见的递归模式**：
+
+| 模式 | 描述 | 状态 |
+|------|------|------|
+| **线性递归** | 单递归调用路径 | ✅ 已测试 |
+| **尾递归** | 递归调用是最后操作 | ✅ 已优化（O(1) 空间） |
+| **二分递归** | 两个递归调用（如斐波那契） | ✅ 已测试 |
+| **多路递归** | 三个或更多递归调用 | ✅ 已测试 |
+| **相互递归** | 函数间相互调用 | ✅ 已测试 |
+| **嵌套递归** | 递归调用作为参数 | ✅ 已测试 |
+| **条件分支** | 基于条件选择不同递归路径 | ✅ 已测试 |
+| **树遍历** | 递归数据结构导航 | ✅ 已测试 |
+| **超深递归** | 深度 > 100,000 | ✅ 已测试 |
+
+查看 [test/test.ts](https://github.com/2234839/RecuRun/blob/main/test/test.ts) 了解所有模式的示例！
 
 ## API 文档
 

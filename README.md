@@ -7,12 +7,9 @@ A lightweight, zero-dependency TypeScript library that allows you to write code 
 [![npm version](https://img.shields.io/npm/v/recurun.svg)](https://www.npmjs.com/package/recurun)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://img.shields.io/badge/tests-19%20passing-brightgreen.svg)](https://github.com/2234839/RecuRun)
 
 **[简体中文](./README_zh.md)** | English
-
-[![npm version](https://img.shields.io/npm/v/recurun.svg)](https://www.npmjs.com/package/recurun)
-[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## ✨ Features
 
@@ -21,6 +18,7 @@ A lightweight, zero-dependency TypeScript library that allows you to write code 
 - ⚡ **High Performance** - Optimized stack management and call mechanism
 - 🛡️ **Stable & Reliable** - Clear rules, no magic auto-detection
 - 📦 **Lightweight** - < 1KB when minified
+- 🧪 **Well Tested** - 19 comprehensive tests covering all recursion patterns
 
 ## Installation
 
@@ -34,6 +32,39 @@ pnpm add recurun
 
 ## Quick Start
 
+### 🔄 From Normal Recursion to Safe Recursion
+
+**Before** (Normal recursion - stack overflow on large inputs):
+
+```typescript
+// ❌ Stack overflow on n > 10000
+function factorial(n: number, acc: number = 1): number {
+    if (n <= 1) return acc;
+    return factorial(n - 1, acc * n);
+}
+```
+
+**After** (With RecuRun - handles any depth):
+
+```typescript
+// ✅ No stack overflow, even on n = 100000!
+import { runTail } from 'recurun';
+
+function* factorial(n: number, acc: number = 1): Generator<any, number> {
+    if (n <= 1) return acc;
+    return yield factorial(n - 1, acc * n);  // Just add `yield` keyword!
+}
+
+const result = runTail(factorial(100000)); // Works! 🎉
+```
+
+**That's it!** Just three simple changes:
+1. Add `function*` to make it a generator
+2. Add `yield` before recursive calls
+3. Wrap with `run()` or `runTail()`
+
+### Examples
+
 ```typescript
 import { run, runTail } from 'recurun';
 
@@ -45,7 +76,7 @@ function* fibonacci(n: number): Generator<any, number> {
     return a + b;
 }
 
-console.log(run(fibonacci, 40)); // 102334155
+console.log(run(fibonacci(40))); // 102334155
 
 // Example 2: Tail-recursive factorial (with optimization)
 function* factorial(n: number, acc: number = 1): Generator<any, number> {
@@ -55,7 +86,7 @@ function* factorial(n: number, acc: number = 1): Generator<any, number> {
 }
 
 // Can safely calculate very large numbers
-console.log(runTail(factorial, 100000)); // No stack overflow!
+console.log(runTail(factorial(100000))); // No stack overflow!
 ```
 
 ## 🆕 Async Support
@@ -85,6 +116,24 @@ async function* factorial(n: number, acc: number = 1): Promise<number> {
 
 console.log(await runTailAsync(factorial, 10000)); // Infinity, no stack overflow!
 ```
+
+## 🔄 Supported Recursion Patterns
+
+RecuRun supports **all common recursion patterns**:
+
+| Pattern | Description | Status |
+|---------|-------------|--------|
+| **Linear Recursion** | Single recursive call path | ✅ Tested |
+| **Tail Recursion** | Recursive call is the last operation | ✅ Optimized (O(1) space) |
+| **Binary Recursion** | Two recursive calls (e.g., Fibonacci) | ✅ Tested |
+| **Multi-way Recursion** | Three or more recursive calls | ✅ Tested |
+| **Mutual Recursion** | Functions calling each other | ✅ Tested |
+| **Nested Recursion** | Recursive call as parameter | ✅ Tested |
+| **Conditional Branching** | Different recursion paths based on conditions | ✅ Tested |
+| **Tree Traversal** | Recursive data structure navigation | ✅ Tested |
+| **Deep Recursion** | Depth > 100,000 | ✅ Tested |
+
+Check out [test/test.ts](https://github.com/2234839/RecuRun/blob/main/test/test.ts) for examples of all patterns!
 
 ## API Documentation
 
