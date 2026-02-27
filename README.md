@@ -93,11 +93,13 @@ console.log(runTail(factorial(100000))); // No stack overflow!
 
 RecuRun now supports async generators (`async function*`) for handling asynchronous recursive operations!
 
+The API automatically detects async generators - just use `run()` or `runTail()`:
+
 ```typescript
-import { runAsync, runTailAsync } from 'recurun';
+import { run, runTail } from 'recurun';
 
 // Example: Async Fibonacci
-async function* fibonacci(n: number): Promise<number> {
+async function* fibonacci(n: number): AsyncGenerator<unknown, number> {
     await new Promise(r => setTimeout(r, 10)); // Simulate async operation
     if (n <= 2) return 1;
     const a = yield fibonacci(n - 1);
@@ -105,16 +107,16 @@ async function* fibonacci(n: number): Promise<number> {
     return a + b;
 }
 
-console.log(await runAsync(fibonacci, 20)); // 6765
+console.log(await run(fibonacci(20))); // 6765
 
 // Example: Async Tail Recursion
-async function* factorial(n: number, acc: number = 1): Promise<number> {
+async function* factorial(n: number, acc: number = 1): AsyncGenerator<unknown, number> {
     await new Promise(r => setTimeout(r, 10)); // Simulate async operation
     if (n <= 1) return acc;
     return yield factorial(n - 1, acc * n);
 }
 
-console.log(await runTailAsync(factorial, 10000)); // Infinity, no stack overflow!
+console.log(await runTail(factorial(10000))); // Infinity, no stack overflow!
 ```
 
 ## 🔄 Supported Recursion Patterns
@@ -137,9 +139,10 @@ Check out [test/test.ts](https://github.com/2234839/RecuRun/blob/main/test/test.
 
 ## API Documentation
 
-### `run(genFunc, ...args)`
+### `run(generator)`
 
 Runs any recursive function using stack simulation to avoid stack overflow.
+Automatically detects sync/async generators via function overloading.
 
 **Use when:**
 - Multiple recursion branches
@@ -147,39 +150,53 @@ Runs any recursive function using stack simulation to avoid stack overflow.
 - Tree structure traversal
 
 ```typescript
-function run<T, TReturn>(
-  genFunc: (...args: any[]) => Generator<T, TReturn>,
-  ...args: any[]
-): TReturn
+// Sync version
+function run<T, TReturn>(generator: Generator<T, TReturn>): TReturn;
+
+// Async version
+function run<T, TReturn>(generator: AsyncGenerator<T, TReturn>): Promise<TReturn>;
 ```
 
 **Example:**
 
 ```typescript
-// Fibonacci sequence
-function* fib(n: number): Generator<any, number> {
+import { run } from 'recurun';
+
+// Fibonacci sequence (sync)
+function* fib(n: number): Generator<unknown, number> {
   if (n <= 2) return 1;
   const a = yield fib(n - 1);
   const b = yield fib(n - 2);
   return a + b;
 }
 
-const result = run(fib, 10); // 55
+const result = run(fib(10)); // 55
 
-// Tree traversal
-function* traverse(node: TreeNode): Generator<any, number> {
+// Tree traversal (sync)
+function* traverse(node: TreeNode): Generator<unknown, number> {
   if (!node) return 0;
   const left = yield traverse(node.left);
   const right = yield traverse(node.right);
   return node.value + left + right;
 }
 
-run(traverse, rootTree);
+run(traverse(rootTree));
+
+// Async example
+async function* fetchAllUsers(ids: number[]): AsyncGenerator<unknown, User[]> {
+  if (ids.length === 0) return [];
+  const user = await fetchUser(ids[0]);
+  const otherUsers = yield fetchAllUsers(ids.slice(1));
+  return [user, ...otherUsers];
+}
+
+const users = await run(fetchAllUsers([1, 2, 3, 4, 5]));
 ```
 
-### `runTail(genFunc, ...args)`
+### `runTail(generator)`
 
 Runs tail-recursive optimized functions, achieving constant-level stack space usage.
+Automatically detects sync/async generators via function overloading.
 
 **Use when:**
 - Single recursion chain (like factorial, sum)
@@ -187,30 +204,43 @@ Runs tail-recursive optimized functions, achieving constant-level stack space us
 - Linked list traversal
 
 ```typescript
-function runTail<T, TReturn>(
-  genFunc: (...args: any[]) => Generator<T, TReturn>,
-  ...args: any[]
-): TReturn
+// Sync version
+function runTail<T, TReturn>(generator: Generator<T, TReturn>): TReturn;
+
+// Async version
+function runTail<T, TReturn>(generator: AsyncGenerator<T, TReturn>): Promise<TReturn>;
 ```
 
 **Example:**
 
 ```typescript
-// Tail-recursive factorial
-function* factorial(n: number, acc: number = 1): Generator<any, number> {
+import { runTail } from 'recurun';
+
+// Tail-recursive factorial (sync)
+function* factorial(n: number, acc: number = 1): Generator<unknown, number> {
   if (n <= 1) return acc;
   // Note: use yield (not yield*) - runTail assumes all calls are tail calls
   return yield factorial(n - 1, acc * n);
 }
 
 // Can safely calculate huge numbers
-const result = runTail(factorial, 100000);
+const result = runTail(factorial(100000));
 
-// Tail-recursive list traversal
-function* traverseList(list: ListNode): Generator<any, number> {
+// Tail-recursive list traversal (sync)
+function* traverseList(list: ListNode): Generator<unknown, number> {
   if (!list) return 0;
   return yield traverseList(list.next);
 }
+
+// Async example
+async function* processList(list: ListNode): AsyncGenerator<unknown, number> {
+  if (!list) return 0;
+  await list.loadNext(); // Simulate async operation
+  return yield processList(list.next);
+}
+
+const result = await runTail(processList(myList));
+```
 ```
 
 ### `isGenerator(value)`
@@ -230,83 +260,6 @@ const g = gen();
 isGenerator(g);     // true
 isGenerator({});     // false
 isGenerator(null);   // false
-```
-
-### `runAsync(genFunc, ...args)`
-
-Runs any async recursive function using stack simulation to avoid stack overflow.
-
-**Use when:**
-- Handling asynchronous recursive operations
-- Need to fetch/process data recursively
-- Async tree structure traversal
-
-```typescript
-function runAsync<T, TReturn>(
-  genFunc: (...args: any[]) => AsyncGenerator<T, TReturn>,
-  ...args: any[]
-): Promise<TReturn>
-```
-
-**Example:**
-
-```typescript
-// Async Fibonacci
-async function* fib(n: number): Promise<number> {
-  await new Promise(r => setTimeout(r, 10));
-  if (n <= 2) return 1;
-  const a = yield fib(n - 1);
-  const b = yield fib(n - 2);
-  return a + b;
-}
-
-const result = await runAsync(fib, 20);
-
-// Async data fetching
-async function* fetchAllUsers(ids: number[]): Promise<User[]> {
-  if (ids.length === 0) return [];
-  const user = await fetchUser(ids[0]);
-  const otherUsers = yield fetchAllUsers(ids.slice(1));
-  return [user, ...otherUsers];
-}
-
-const users = await runAsync(fetchAllUsers, [1, 2, 3, 4, 5]);
-```
-
-### `runTailAsync(genFunc, ...args)`
-
-Runs async tail-recursive optimized functions with constant-level stack space usage.
-
-**Use when:**
-- Async single recursion chain
-- Ultra-deep async recursion (depth > 10,000)
-- Async linked list traversal
-
-```typescript
-function runTailAsync<T, TReturn>(
-  genFunc: (...args: any[]) => AsyncGenerator<T, TReturn>,
-  ...args: any[]
-): Promise<TReturn>
-```
-
-**Example:**
-
-```typescript
-// Async tail-recursive factorial
-async function* factorial(n: number, acc: number = 1): Promise<number> {
-  await new Promise(r => setTimeout(r, 10));
-  if (n <= 1) return acc;
-  return yield factorial(n - 1, acc * n);
-}
-
-const result = await runTailAsync(factorial, 10000);
-
-// Async list traversal
-async function* traverseList(list: ListNode): Promise<number> {
-  if (!list) return 0;
-  await list.loadNext(); // Simulate async operation
-  return yield traverseList(list.next);
-}
 ```
 
 ### `isAsyncGenerator(value)`
@@ -378,7 +331,9 @@ npm run benchmark
 Use when your recursive function has multiple branches or needs to perform operations after recursive calls:
 
 ```typescript
-function* treeSum(node: TreeNode | null): Generator<any, number> {
+import { run } from 'recurun';
+
+function* treeSum(node: TreeNode | null): Generator<unknown, number> {
   if (!node) return 0;
 
   // Need to combine results from two recursive calls
@@ -388,7 +343,7 @@ function* treeSum(node: TreeNode | null): Generator<any, number> {
   return node.value + leftSum + rightSum;
 }
 
-const total = run(treeSum, root);
+const total = run(treeSum(root));
 ```
 
 ### When to use `runTail`?
@@ -396,13 +351,15 @@ const total = run(treeSum, root);
 Use when the recursive call is the last operation in your function:
 
 ```typescript
-function* arraySum(arr: number[], index: number = 0, acc: number = 0): Generator<any, number> {
+import { runTail } from 'recurun';
+
+function* arraySum(arr: number[], index: number = 0, acc: number = 0): Generator<unknown, number> {
   if (index >= arr.length) return acc;
   // Tail recursive call
   return yield arraySum(arr, index + 1, acc + arr[index]);
 }
 
-const sum = runTail(arraySum, [1, 2, 3, 4, 5]); // 15
+const sum = runTail(arraySum([1, 2, 3, 4, 5])); // 15
 ```
 
 ### Best Practices
@@ -444,53 +401,59 @@ const sum = runTail(arraySum, [1, 2, 3, 4, 5]); // 15
 ### Tree Traversal
 
 ```typescript
+import { run } from 'recurun';
+
 interface TreeNode {
   value: number;
   left?: TreeNode;
   right?: TreeNode;
 }
 
-function* traverse(node: TreeNode | undefined): Generator<any, number> {
+function* traverse(node: TreeNode | undefined): Generator<unknown, number> {
   if (!node) return 0;
   const leftSum = yield traverse(node.left);
   const rightSum = yield traverse(node.right);
   return node.value + leftSum + rightSum;
 }
 
-const total = run(traverse, rootTree);
+const total = run(traverse(rootTree));
 ```
 
 ### Linked List Operations
 
 ```typescript
+import { runTail } from 'recurun';
+
 interface ListNode {
   value: number;
   next?: ListNode;
 }
 
-function* listLength(node: ListNode | undefined, acc: number = 0) {
+function* listLength(node: ListNode | undefined, acc: number = 0): Generator<unknown, number> {
   if (!node) return acc;
   return yield listLength(node.next, acc + 1);
 }
 
-function* listSum(node: ListNode | undefined, acc: number = 0) {
+function* listSum(node: ListNode | undefined, acc: number = 0): Generator<unknown, number> {
   if (!node) return acc;
   return yield listSum(node.next, acc + node.value);
 }
 
-const len = runTail(listLength, myList);
-const sum = runTail(listSum, myList);
+const len = runTail(listLength(myList));
+const sum = runTail(listSum(myList));
 ```
 
 ### Array Processing
 
 ```typescript
-function* arraySum(arr: number[], index = 0): Generator<any, number> {
+import { run } from 'recurun';
+
+function* arraySum(arr: number[], index = 0): Generator<unknown, number> {
   if (index >= arr.length) return 0;
   return arr[index] + (yield arraySum(arr, index + 1));
 }
 
-const total = run(arraySum, [1, 2, 3, 4, 5]); // 15
+const total = run(arraySum([1, 2, 3, 4, 5])); // 15
 ```
 
 ## Technical Details
@@ -557,13 +520,13 @@ const trampoline = fn => (...args) => {
 // Maintain natural recursive writing style!
 import { runTail } from 'recurun';
 
-function* factorial(n: number, acc: number = 1) {
+function* factorial(n: number, acc: number = 1): Generator<unknown, number> {
   if (n <= 1) return acc;
   return yield factorial(n - 1, acc * n);  // Natural recursion
 }
 
 // Safe calculation, no stack overflow
-const result = runTail(factorial, 100000);
+const result = runTail(factorial(100000));
 ```
 
 **Advantages:**

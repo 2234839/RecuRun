@@ -93,11 +93,13 @@ console.log(runTail(factorial(100000))); // 不会栈溢出！
 
 RecuRun 现在支持异步生成器（`async function*`）来处理异步递归操作！
 
+API 会自动检测异步生成器 - 只需使用 `run()` 或 `runTail()`：
+
 ```typescript
-import { runAsync, runTailAsync } from 'recurun';
+import { run, runTail } from 'recurun';
 
 // 示例：异步斐波那契
-async function* fibonacci(n: number): Promise<number> {
+async function* fibonacci(n: number): AsyncGenerator<unknown, number> {
     await new Promise(r => setTimeout(r, 10)); // 模拟异步操作
     if (n <= 2) return 1;
     const a = yield fibonacci(n - 1);
@@ -105,16 +107,16 @@ async function* fibonacci(n: number): Promise<number> {
     return a + b;
 }
 
-console.log(await runAsync(fibonacci, 20)); // 6765
+console.log(await run(fibonacci(20))); // 6765
 
 // 示例：异步尾递归
-async function* factorial(n: number, acc: number = 1): Promise<number> {
+async function* factorial(n: number, acc: number = 1): AsyncGenerator<unknown, number> {
     await new Promise(r => setTimeout(r, 10)); // 模拟异步操作
     if (n <= 1) return acc;
     return yield factorial(n - 1, acc * n);
 }
 
-console.log(await runTailAsync(factorial, 10000)); // Infinity，不会栈溢出！
+console.log(await runTail(factorial(10000))); // Infinity，不会栈溢出！
 ```
 
 ## 🔄 支持的递归模式
@@ -137,9 +139,10 @@ RecuRun 支持**所有常见的递归模式**：
 
 ## API 文档
 
-### `run(genFunc, ...args)`
+### `run(generator)`
 
 使用栈模拟运行任意递归函数，避免栈溢出。
+通过函数重载自动检测同步/异步生成器。
 
 **适用于：**
 - 多分支递归
@@ -147,39 +150,53 @@ RecuRun 支持**所有常见的递归模式**：
 - 树结构遍历
 
 ```typescript
-function run<T, TReturn>(
-  genFunc: (...args: any[]) => Generator<T, TReturn>,
-  ...args: any[]
-): TReturn
+// 同步版本
+function run<T, TReturn>(generator: Generator<T, TReturn>): TReturn;
+
+// 异步版本
+function run<T, TReturn>(generator: AsyncGenerator<T, TReturn>): Promise<TReturn>;
 ```
 
 **示例：**
 
 ```typescript
-// 斐波那契数列
-function* fib(n: number): Generator<any, number> {
+import { run } from 'recurun';
+
+// 斐波那契数列（同步）
+function* fib(n: number): Generator<unknown, number> {
   if (n <= 2) return 1;
   const a = yield fib(n - 1);
   const b = yield fib(n - 2);
   return a + b;
 }
 
-const result = run(fib, 10); // 55
+const result = run(fib(10)); // 55
 
-// 树遍历
-function* traverse(node: TreeNode): Generator<any, number> {
+// 树遍历（同步）
+function* traverse(node: TreeNode): Generator<unknown, number> {
   if (!node) return 0;
   const left = yield traverse(node.left);
   const right = yield traverse(node.right);
   return node.value + left + right;
 }
 
-run(traverse, rootTree);
+run(traverse(rootTree));
+
+// 异步示例
+async function* fetchAllUsers(ids: number[]): AsyncGenerator<unknown, User[]> {
+  if (ids.length === 0) return [];
+  const user = await fetchUser(ids[0]);
+  const otherUsers = yield fetchAllUsers(ids.slice(1));
+  return [user, ...otherUsers];
+}
+
+const users = await run(fetchAllUsers([1, 2, 3, 4, 5]));
 ```
 
-### `runTail(genFunc, ...args)`
+### `runTail(generator)`
 
 运行尾递归优化的函数，实现常量级栈空间使用。
+通过函数重载自动检测同步/异步生成器。
 
 **适用于：**
 - 单递归链（如阶乘、求和）
@@ -187,30 +204,43 @@ run(traverse, rootTree);
 - 链表遍历
 
 ```typescript
-function runTail<T, TReturn>(
-  genFunc: (...args: any[]) => Generator<T, TReturn>,
-  ...args: any[]
-): TReturn
+// 同步版本
+function runTail<T, TReturn>(generator: Generator<T, TReturn>): TReturn;
+
+// 异步版本
+function runTail<T, TReturn>(generator: AsyncGenerator<T, TReturn>): Promise<TReturn>;
 ```
 
 **示例：**
 
 ```typescript
-// 尾递归阶乘
-function* factorial(n: number, acc: number = 1): Generator<any, number> {
+import { runTail } from 'recurun';
+
+// 尾递归阶乘（同步）
+function* factorial(n: number, acc: number = 1): Generator<unknown, number> {
   if (n <= 1) return acc;
   // 注意：使用 yield（不是 yield*）- runTail 假设所有调用都是尾调用
   return yield factorial(n - 1, acc * n);
 }
 
 // 可以安全计算巨大数字
-const result = runTail(factorial, 100000);
+const result = runTail(factorial(100000));
 
-// 尾递归链表遍历
-function* traverseList(list: ListNode): Generator<any, number> {
+// 尾递归链表遍历（同步）
+function* traverseList(list: ListNode): Generator<unknown, number> {
   if (!list) return 0;
   return yield traverseList(list.next);
 }
+
+// 异步示例
+async function* processList(list: ListNode): AsyncGenerator<unknown, number> {
+  if (!list) return 0;
+  await list.loadNext(); // 模拟异步操作
+  return yield processList(list.next);
+}
+
+const result = await runTail(processList(myList));
+```
 ```
 
 ### `isGenerator(value)`
@@ -230,83 +260,6 @@ const g = gen();
 isGenerator(g);     // true
 isGenerator({});     // false
 isGenerator(null);   // false
-```
-
-### `runAsync(genFunc, ...args)`
-
-使用栈模拟运行任意异步递归函数，避免栈溢出。
-
-**适用于：**
-- 处理异步递归操作
-- 需要递归获取/处理数据
-- 异步树结构遍历
-
-```typescript
-function runAsync<T, TReturn>(
-  genFunc: (...args: any[]) => AsyncGenerator<T, TReturn>,
-  ...args: any[]
-): Promise<TReturn>
-```
-
-**示例：**
-
-```typescript
-// 异步斐波那契
-async function* fib(n: number): Promise<number> {
-  await new Promise(r => setTimeout(r, 10));
-  if (n <= 2) return 1;
-  const a = yield fib(n - 1);
-  const b = yield fib(n - 2);
-  return a + b;
-}
-
-const result = await runAsync(fib, 20);
-
-// 异步数据获取
-async function* fetchAllUsers(ids: number[]): Promise<User[]> {
-  if (ids.length === 0) return [];
-  const user = await fetchUser(ids[0]);
-  const otherUsers = yield fetchAllUsers(ids.slice(1));
-  return [user, ...otherUsers];
-}
-
-const users = await runAsync(fetchAllUsers, [1, 2, 3, 4, 5]);
-```
-
-### `runTailAsync(genFunc, ...args)`
-
-运行异步尾递归优化函数，实现常量级栈空间使用。
-
-**适用于：**
-- 异步单递归链
-- 超深异步递归（深度 > 10,000）
-- 异步链表遍历
-
-```typescript
-function runTailAsync<T, TReturn>(
-  genFunc: (...args: any[]) => AsyncGenerator<T, TReturn>,
-  ...args: any[]
-): Promise<TReturn>
-```
-
-**示例：**
-
-```typescript
-// 异步尾递归阶乘
-async function* factorial(n: number, acc: number = 1): Promise<number> {
-  await new Promise(r => setTimeout(r, 10));
-  if (n <= 1) return acc;
-  return yield factorial(n - 1, acc * n);
-}
-
-const result = await runTailAsync(factorial, 10000);
-
-// 异步链表遍历
-async function* traverseList(list: ListNode): Promise<number> {
-  if (!list) return 0;
-  await list.loadNext(); // 模拟异步操作
-  return yield traverseList(list.next);
-}
 ```
 
 ### `isAsyncGenerator(value)`
@@ -380,7 +333,9 @@ npm run benchmark
 当你的递归函数有多个分支或需要在递归调用后执行操作时：
 
 ```typescript
-function* treeSum(node: TreeNode | null): Generator<any, number> {
+import { run } from 'recurun';
+
+function* treeSum(node: TreeNode | null): Generator<unknown, number> {
   if (!node) return 0;
 
   // 需要合并两个递归调用的结果
@@ -390,7 +345,7 @@ function* treeSum(node: TreeNode | null): Generator<any, number> {
   return node.value + leftSum + rightSum;
 }
 
-const total = run(treeSum, root);
+const total = run(treeSum(root));
 ```
 
 ### 何时使用 `runTail`？
@@ -398,13 +353,15 @@ const total = run(treeSum, root);
 当递归调用是函数的最后一个操作时：
 
 ```typescript
-function* arraySum(arr: number[], index: number = 0, acc: number = 0): Generator<any, number> {
+import { runTail } from 'recurun';
+
+function* arraySum(arr: number[], index: number = 0, acc: number = 0): Generator<unknown, number> {
   if (index >= arr.length) return acc;
   // 尾递归调用
   return yield arraySum(arr, index + 1, acc + arr[index]);
 }
 
-const sum = runTail(arraySum, [1, 2, 3, 4, 5]); // 15
+const sum = runTail(arraySum([1, 2, 3, 4, 5])); // 15
 ```
 
 ### 最佳实践
@@ -446,53 +403,59 @@ const sum = runTail(arraySum, [1, 2, 3, 4, 5]); // 15
 ### 树遍历
 
 ```typescript
+import { run } from 'recurun';
+
 interface TreeNode {
   value: number;
   left?: TreeNode;
   right?: TreeNode;
 }
 
-function* traverse(node: TreeNode | undefined): Generator<any, number> {
+function* traverse(node: TreeNode | undefined): Generator<unknown, number> {
   if (!node) return 0;
   const leftSum = yield traverse(node.left);
   const rightSum = yield traverse(node.right);
   return node.value + leftSum + rightSum;
 }
 
-const total = run(traverse, rootTree);
+const total = run(traverse(rootTree));
 ```
 
 ### 链表操作
 
 ```typescript
+import { runTail } from 'recurun';
+
 interface ListNode {
   value: number;
   next?: ListNode;
 }
 
-function* listLength(node: ListNode | undefined, acc: number = 0) {
+function* listLength(node: ListNode | undefined, acc: number = 0): Generator<unknown, number> {
   if (!node) return acc;
   return yield listLength(node.next, acc + 1);
 }
 
-function* listSum(node: ListNode | undefined, acc: number = 0) {
+function* listSum(node: ListNode | undefined, acc: number = 0): Generator<unknown, number> {
   if (!node) return acc;
   return yield listSum(node.next, acc + node.value);
 }
 
-const len = runTail(listLength, myList);
-const sum = runTail(listSum, myList);
+const len = runTail(listLength(myList));
+const sum = runTail(listSum(myList));
 ```
 
 ### 数组处理
 
 ```typescript
-function* arraySum(arr: number[], index = 0): Generator<any, number> {
+import { run } from 'recurun';
+
+function* arraySum(arr: number[], index = 0): Generator<unknown, number> {
   if (index >= arr.length) return 0;
   return arr[index] + (yield arraySum(arr, index + 1));
 }
 
-const total = run(arraySum, [1, 2, 3, 4, 5]); // 15
+const total = run(arraySum([1, 2, 3, 4, 5])); // 15
 ```
 
 ## 技术细节
@@ -559,13 +522,13 @@ const trampoline = fn => (...args) => {
 // 保持自然的递归写法！
 import { runTail } from 'recurun';
 
-function* factorial(n: number, acc: number = 1) {
+function* factorial(n: number, acc: number = 1): Generator<unknown, number> {
   if (n <= 1) return acc;
   return yield factorial(n - 1, acc * n);  // 自然递归
 }
 
 // 安全计算，不会栈溢出
-const result = runTail(factorial, 100000);
+const result = runTail(factorial(100000));
 ```
 
 **优势：**

@@ -22,16 +22,12 @@ RecuRun 是一个极简的递归运行器库，核心目标是用递归的方式
 
 **统一 API，自动检测**
 - ✅ 使用 `run()` 和 `runTail()`，通过函数重载自动检测同步/异步生成器
-- ❌ 不要导出 `runAsync`、`runTailAsync` 等别名函数
 - 理由：减少 API 表面，避免混淆，TypeScript 类型推断更好
 
 ```typescript
 // ✅ 正确
 export function run<T, TReturn>(generator: Generator<T, TReturn>): TReturn;
 export function run<T, TReturn>(generator: AsyncGenerator<T, TReturn>): Promise<TReturn>;
-
-// ❌ 错误 - 不要添加别名
-export { run as runAsync }; // 不要这样做！
 ```
 
 ### 2. 类型安全原则
@@ -374,62 +370,6 @@ function* fib(n) {
 - **GitHub**: https://github.com/2234839/RecuRun
 - **npm**: https://www.npmjs.com/package/recurun
 - **Issues**: https://github.com/2234839/RecuRun/issues
-
----
-
-## 历史决策记录
-
-### 2026-02-26: API 统一化
-
-**决策**: 删除 `runAsync` 和 `runTailAsync` 别名，统一使用 `run()` 和 `runTail()`
-
-**理由**:
-- 函数重载可以自动检测生成器类型
-- 减少 API 表面，避免混淆
-- TypeScript 类型推断更好
-
-**影响**: 破坏性变更，但在 v0.1.x 阶段可以接受
-
-### 2026-02-26: OIDC 自动发布配置
-
-**决策**: 使用 GitHub Actions OIDC 自动发布到 npm
-
-**配置**:
-- 删除 `npm whoami` 检查步骤
-- 删除 `--access public` 参数
-- Node.js 版本：24
-
-**理由**: 与 DynaPM 项目保持一致，简化发布流程
-
-### 2026-02-26: 测试覆盖完整性
-
-**决策**: 添加异步递归测试，覆盖所有递归模式
-
-**成果**: 从 19 个测试增加到 26 个测试
-
-**测试组**:
-- 同步递归：run, runTail, 特殊递归形式
-- 异步递归：run (async), runTail (async)
-
-### 2026-02-26: 文档国际化
-
-**决策**: 同时维护中英文 README，双向链接
-
-**配置**:
-- README.md（英文主文档）
-- README_zh.md（中文完整翻译）
-- package.json `files` 包含两个 README
-
-### 2026-02-26: 删除 examples 目录
-
-**决策**: 删除 examples/ 目录，所有示例在 README 中
-
-**理由**:
-- 示例在 README 中更易维护
-- 单一数据源，避免不同步
-- 用户直接在 npm/GitHub 看到 README
-
----
 
 ## 快速参考
 
